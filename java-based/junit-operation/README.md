@@ -171,4 +171,75 @@ class TestJunit1 {
 
 ## JUnit - 编写测试
 #### JUnit - 编写测试
+创建一个名为**EmployeeDetails.java**的 POJO 类。
+**EmployeeDetails.java** 类被用于
+- 取得或者设置雇员的姓名的值
+- 取得或者设置雇员的每月薪水的值
+- 取得或者设置雇员的年龄的值
  
+```
+package cn.yanwei.study.junit.operation.modules;
+
+import lombok.Data;
+
+/**
+ * POJO 类
+ *
+ * @author daiyongjun
+ * @version 1.0
+ * Created on date: 2019/12/12 16:31
+ */
+@Data
+public class EmployeeDetails {
+    private String name;
+    private double monthlySalary;
+    private int age;
+}
+```
+创建一个名为**EmpBusinessLogic.java** 的 **business logic** 类
+- 雇员每年的薪水
+- 雇员的评估金额
+
+```
+package cn.yanwei.study.junit.operation.modules;
+
+/**
+ * business logic 类
+ *
+ * @author daiyongjun
+ * @version 1.0
+ * Created on date: 2019/12/12 16:41
+ */
+public class EmpBusinessLogic {
+    /**
+     * Calculate the yearly salary of employee
+     *
+     * @param employeeDetails employee details
+     * @return yearly salary
+     */
+    public double calculateYearlySalary(EmployeeDetails employeeDetails) {
+        double yearlySalary = 0;
+        yearlySalary = employeeDetails.getMonthlySalary() * 12;
+        return yearlySalary;
+    }
+
+    /**
+     * Calculate the appraisal amount of employee
+     *
+     * @param employeeDetails employee details
+     * @return appraisal amount
+     */
+    public double calculateAppraisal(EmployeeDetails employeeDetails) {
+        double appraisal = 0;
+        double threshold = 10000;
+        if (employeeDetails.getMonthlySalary() < threshold) {
+            appraisal = 500;
+        } else {
+            appraisal = 1000;
+        }
+        return appraisal;
+    }
+
+}
+```
+
