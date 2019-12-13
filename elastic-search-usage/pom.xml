@@ -9,6 +9,33 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elastic-search-usage</artifactId>
+    <packaging>pom</packaging>
+    <properties>
+        <elasticsearch.version>6.4.3</elasticsearch.version>
+    </properties>
 
+    <modules>
+        <module>elastic-search-client-java</module>
+    </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>${elasticsearch.version}</version>
+                <scope>compile</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <repositories>
+        <repository>
+            <id>rdc-releases</id>
+            <url>https://repo.rdc.aliyun.com/repository/70364-release-cD5mDa/</url>
+        </repository>
+        <repository>
+            <id>rdc-snapshots</id>
+            <url>https://repo.rdc.aliyun.com/repository/70364-snapshot-G0OIcY/</url>
+        </repository>
+    </repositories>
 </project>
