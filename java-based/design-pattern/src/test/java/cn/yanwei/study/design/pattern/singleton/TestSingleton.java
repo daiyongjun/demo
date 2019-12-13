@@ -3,7 +3,7 @@ package cn.yanwei.study.design.pattern.singleton;
 import org.junit.jupiter.api.Test;
 
 /**
- * 测试单例模式
+ * 5、增加单元测试-单例模式
  *
  * @author daiyongjun
  * @version 1.0
