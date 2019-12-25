@@ -50,7 +50,7 @@ public class Employee implements Serializable, Cloneable {
  ```
  package cn.yanwei.study.instance;
 
-import cn.yanwei.study.instance.modules.Employee;
+import Employee;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;

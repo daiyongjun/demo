@@ -68,7 +68,7 @@ public class MessageUtil {
 ```
 package cn.yanwei.study.junit.operation.base;
 
-import cn.yanwei.study.junit.operation.utils.MessageUtil;
+import MessageUtil;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

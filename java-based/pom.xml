@@ -15,5 +15,7 @@
         <module>new-instance</module>
         <module>junit-operation</module>
         <module>design-pattern</module>
+        <module>dynamic-proxy</module>
+        <module>mockito-usage</module>
     </modules>
 </project>
