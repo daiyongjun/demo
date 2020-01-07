@@ -28,14 +28,6 @@ import org.springframework.util.StringUtils;
  */
 @Data
 public class Criteria {
-
-    @Override
-    public String toString() {
-        return "Criteria{" + "field=" + field.getName() + ", boost=" + boost + ", negating=" + negating + ", queryCriteria="
-                + ObjectUtils.nullSafeToString(queryCriteria) + ", filterCriteria="
-                + ObjectUtils.nullSafeToString(filterCriteria) + '}';
-    }
-
     public static final String WILDCARD = "*";
     public static final String CRITERIA_VALUE_SEPERATOR = " ";
 
@@ -84,7 +76,6 @@ public class Criteria {
         Assert.notNull(criteriaChain, "CriteriaChain must not be null");
         Assert.notNull(field, "Field for criteria must not be null");
         Assert.hasText(field.getName(), "Field.name for criteria must not be null/empty");
-
         this.criteriaChain.addAll(criteriaChain);
         this.criteriaChain.add(this);
         this.field = field;
@@ -197,6 +188,21 @@ public class Criteria {
         return this;
     }
 
+    public Criteria match(Object o) {
+        queryCriteria.add(new CriteriaEntry(OperationKey.MATCH, o));
+        return this;
+    }
+
+    public Criteria phrase(Object o) {
+        queryCriteria.add(new CriteriaEntry(OperationKey.MATCH_PHRASE, o));
+        return this;
+    }
+
+    public Criteria Criteria(Object o) {
+        queryCriteria.add(new CriteriaEntry(OperationKey.MATCH, o));
+        return this;
+    }
+
     /**
      * Creates a new CriteriaEntry for existence check.
      *
@@ -220,7 +226,6 @@ public class Criteria {
         queryCriteria.add(new CriteriaEntry(OperationKey.CONTAINS, s));
         return this;
     }
-
     /**
      * Crates new CriteriaEntry with trailing wildcard
      *
@@ -393,12 +398,6 @@ public class Criteria {
         return this;
     }
 
-    public Criteria within(GeoPoint location, String distance) {
-        Assert.notNull(location, "Location value for near criteria must not be null");
-        Assert.notNull(location, "Distance value for near criteria must not be null");
-        filterCriteria.add(new CriteriaEntry(OperationKey.WITHIN, new Object[]{location, distance}));
-        return this;
-    }
 
     /**
      * Creates new CriteriaEntry for {@code location WITHIN distance}
@@ -580,6 +579,11 @@ public class Criteria {
         LESS_EQUAL, //
         GREATER, //
         GREATER_EQUAL, //
+        QUERY_STRING,
+        MATCH,
+        MATCH_PHRASE,
+        ASC,
+        DESC,
         /**
          * @since 4.0
          */

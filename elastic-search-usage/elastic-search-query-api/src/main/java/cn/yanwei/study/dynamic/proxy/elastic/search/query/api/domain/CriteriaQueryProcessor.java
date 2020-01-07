@@ -3,12 +3,10 @@ package cn.yanwei.study.dynamic.proxy.elastic.search.query.api.domain;
 import org.apache.lucene.queryparser.flexible.core.util.StringUtils;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.util.Assert;
-
 import java.util.*;
-
-import static org.elasticsearch.index.query.Operator.AND;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
@@ -19,6 +17,7 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
  * Created on date: 2019/12/23 15:44
  */
 public class CriteriaQueryProcessor {
+
     public QueryBuilder createQueryFromCriteria(Criteria criteria) {
         if (criteria == null) {
             return null;
@@ -128,19 +127,19 @@ public class CriteriaQueryProcessor {
 
         switch (key) {
             case EQUALS:
-                query = queryStringQuery(searchText).field(fieldName).defaultOperator(AND);
+                query = termQuery(fieldName, searchText);
                 break;
             case CONTAINS:
-                query = queryStringQuery("*" + searchText + "*").field(fieldName).analyzeWildcard(true);
+                query = wildcardQuery(fieldName, "*" + searchText + "*");
                 break;
             case STARTS_WITH:
-                query = queryStringQuery(searchText + "*").field(fieldName).analyzeWildcard(true);
+                query = wildcardQuery(fieldName, searchText + "*");
                 break;
             case ENDS_WITH:
-                query = queryStringQuery("*" + searchText).field(fieldName).analyzeWildcard(true);
+                query = wildcardQuery(fieldName, "*" + searchText);
                 break;
             case EXPRESSION:
-                query = queryStringQuery(value.toString()).field(fieldName);
+                query = queryStringQuery(value.toString()).field(searchText);
                 break;
             case LESS_EQUAL:
                 query = rangeQuery(fieldName).lte(value);
@@ -162,7 +161,17 @@ public class CriteriaQueryProcessor {
                 query = fuzzyQuery(fieldName, searchText);
                 break;
             case IN:
-                query = boolQuery().must(termsQuery(fieldName, toStringList((Iterable<Object>) value)));
+                Collection<?> list = (Collection<?>) (value);
+                query = termsQuery(fieldName, list);
+                break;
+            case QUERY_STRING:
+                query = queryStringQuery((String) value).defaultField(fieldName).defaultOperator(Operator.AND);
+                break;
+            case MATCH:
+                query = matchQuery(fieldName, searchText);
+                break;
+            case MATCH_PHRASE:
+                query = matchPhraseQuery(fieldName, searchText);
                 break;
             case NOT_IN:
                 query = boolQuery().mustNot(termsQuery(fieldName, toStringList((Iterable<Object>) value)));

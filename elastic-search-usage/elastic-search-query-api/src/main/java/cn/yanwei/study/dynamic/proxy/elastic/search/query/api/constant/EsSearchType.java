@@ -6,6 +6,6 @@ package cn.yanwei.study.dynamic.proxy.elastic.search.query.api.constant;
 public enum EsSearchType {
 
     TERM, TERMS, RANGE_FROM, RANGE_TO, RANGE_GT, RANGE_LT, RANGE_GTE, RANGE_LTE, FUZZY,
-    SHOULD_TERM, QUERY_STRING, MATCH, WILDCARD_SEARCH
+    SHOULD_TERM, QUERY_STRING, MATCH, MATCH_PHRASE, WILDCARD_SEARCH
 
 }
