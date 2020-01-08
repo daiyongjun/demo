@@ -17,6 +17,7 @@
     <modules>
         <module>elastic-search-client-java</module>
         <module>elastic-search-query-api</module>
+        <module>elastic-search-distribute-character</module>
     </modules>
 
     <dependencyManagement>
