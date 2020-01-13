@@ -6,7 +6,9 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.util.Assert;
+
 import java.util.*;
+
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
@@ -25,21 +27,20 @@ public class CriteriaQueryProcessor {
         List<QueryBuilder> shouldQueryBuilderList = new LinkedList();
         List<QueryBuilder> mustNotQueryBuilderList = new LinkedList();
         List<QueryBuilder> mustQueryBuilderList = new LinkedList();
-
         ListIterator<Criteria> chainIterator = criteria.getCriteriaChain().listIterator();
 
-        QueryBuilder firstQuery = null;
-        boolean negateFirstQuery = false;
+        QueryBuilder queryFragmentForCriteria = null;
 
+        boolean negateFirstQuery = false;
         while (chainIterator.hasNext()) {
             Criteria chainedCriteria = chainIterator.next();
-            QueryBuilder queryFragmentForCriteria = createQueryFragmentForCriteria(chainedCriteria);
+            if (criteria.getRecursion() > 0) {
+                queryFragmentForCriteria = createQueryFromCriteria(chainedCriteria);
+                chainedCriteria = criteria;
+            } else {
+                queryFragmentForCriteria = createQueryFragmentForCriteria(chainedCriteria);
+            }
             if (queryFragmentForCriteria != null) {
-                if (firstQuery == null) {
-                    firstQuery = queryFragmentForCriteria;
-                    negateFirstQuery = chainedCriteria.isNegating();
-                    continue;
-                }
                 if (chainedCriteria.isOr()) {
                     shouldQueryBuilderList.add(queryFragmentForCriteria);
                 } else if (chainedCriteria.isNegating()) {
@@ -49,25 +50,9 @@ public class CriteriaQueryProcessor {
                 }
             }
         }
-
-        if (firstQuery != null) {
-            if (!shouldQueryBuilderList.isEmpty() && mustNotQueryBuilderList.isEmpty() && mustQueryBuilderList.isEmpty()) {
-                shouldQueryBuilderList.add(0, firstQuery);
-            } else {
-                if (negateFirstQuery) {
-                    mustNotQueryBuilderList.add(0, firstQuery);
-                } else {
-                    mustQueryBuilderList.add(0, firstQuery);
-                }
-            }
-        }
-
         BoolQueryBuilder query = null;
-
         if (!shouldQueryBuilderList.isEmpty() || !mustNotQueryBuilderList.isEmpty() || !mustQueryBuilderList.isEmpty()) {
-
             query = boolQuery();
-
             for (QueryBuilder qb : shouldQueryBuilderList) {
                 query.should(qb);
             }
@@ -103,7 +88,6 @@ public class CriteriaQueryProcessor {
                 ((BoolQueryBuilder) query).must(processCriteriaEntry(entry, fieldName));
             }
         }
-
         addBoost(query, chainedCriteria.getBoost());
         return query;
     }

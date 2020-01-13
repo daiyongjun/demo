@@ -28,18 +28,6 @@ class SearchTest {
         searchSourceBuilder.query(qb);
         searchSourceBuilder.aggregation(aggregation);
         System.out.println(searchSourceBuilder.toString());
-//
-//        QueryBuilder matchQueryBuilder = QueryBuilders.matchQuery("user", "kimchy")
-//                .fuzziness(Fuzziness.AUTO)
-//                .prefixLength(3)
-//                .maxExpansions(10);
-//        searchSourceBuilder.query(matchQueryBuilder);
-//        searchSourceBuilder.aggregation(aggregation);
-//        SearchRequest searchRequest = new SearchRequest();
-//        searchRequest.source(searchSourceBuilder);
-//        System.out.println("最终结果:\t" + searchSourceBuilder.toString());
-////		SearchResponse searchResponse = ElasticBaseSearch.getInstance().getIndexAndType(null);
-
     }
 
 }

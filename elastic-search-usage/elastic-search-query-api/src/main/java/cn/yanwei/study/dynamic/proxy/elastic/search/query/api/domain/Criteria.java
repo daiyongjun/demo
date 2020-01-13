@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
  */
 @Data
 public class Criteria {
+    private int recursion;
     public static final String WILDCARD = "*";
     public static final String CRITERIA_VALUE_SEPERATOR = " ";
 
@@ -129,6 +130,7 @@ public class Criteria {
      */
     public Criteria and(Criteria criteria) {
         this.criteriaChain.add(criteria);
+        this.recursion += 1;
         return this;
     }
 
@@ -161,10 +163,13 @@ public class Criteria {
      */
     public Criteria or(Criteria criteria) {
         Assert.notNull(criteria, "Cannot chain 'null' criteria.");
-
-        Criteria orConnectedCritiera = new OrCriteria(this.criteriaChain, criteria.getField());
+        Criteria orConnectedCritiera = new OrCriteria();
+        orConnectedCritiera.criteriaChain.addAll(criteria.criteriaChain);
         orConnectedCritiera.queryCriteria.addAll(criteria.queryCriteria);
-        return orConnectedCritiera;
+        orConnectedCritiera.setField(criteria.getField());
+        this.criteriaChain.add(orConnectedCritiera);
+        this.recursion += 1;
+        return this;
     }
 
     /**
@@ -226,6 +231,7 @@ public class Criteria {
         queryCriteria.add(new CriteriaEntry(OperationKey.CONTAINS, s));
         return this;
     }
+
     /**
      * Crates new CriteriaEntry with trailing wildcard
      *
@@ -534,7 +540,7 @@ public class Criteria {
         return this.boost;
     }
 
-    static class OrCriteria extends Criteria {
+    public static class OrCriteria extends Criteria {
 
         public OrCriteria() {
             super();

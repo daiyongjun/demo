@@ -8,8 +8,9 @@
 
 >[Elasticsearch: 权威指南 分片内部原理](https://www.elastic.co/guide/cn/elasticsearch/guide/current/inside-a-shard.html "分片内部原理")
 
+>[Elasticsearch: 权威指南 索引管理](https://www.elastic.co/guide/cn/elasticsearch/guide/current/index-management.html "索引管理")
 
->[CSDN: ES集群和分片](https://blog.csdn.net/liupeng_qwert/article/details/78273140 "ES集群和分片")
+>[CNblog: ElasticSearch 6.5.4版本启动集群](https://www.cnblogs.com/sxdcgaq8080/p/10449332.html "ElasticSearch 6.5.4版本启动集群")
 
 ### 集群内的原理
 
@@ -138,6 +139,7 @@ docker run -di --name=myes2 -p 9201:9201 -p 9301:9301 -v G:/docker/elasticsearch
 docker inspect myes1
 docker inspect myes2
 
+[Reponse]
 IPAddress: 172.17.0.2
 IPAddress: 172.17.0.3
 
@@ -214,6 +216,8 @@ http://127.0.0.1:9200/_cluster/health
 ###### 重新创建一个索引
 ```
 [PUT]http://127.0.0.1:9200/blogs1
+
+[Reponse]
 {
    "settings" : {
       "number_of_shards" : 4,
@@ -226,11 +230,94 @@ http://127.0.0.1:9200/_cluster/health
 ```
 http://127.0.0.1:9200/_cat/indices?v
 
+[Reponse]
 health status index  uuid                   pri rep docs.count docs.deleted store.size pri.store.size
 green  open   blogs1 JuAsmZ0NRz6FqqxcWMbuJQ   4   1          0            0      1.7kb           920b
 yellow open   blogs  vu4fDMv0Q0Ka1mIm3ndXFg   3   2          0            0      1.5kb           783b
 ```
+由此我们可以看出节点的分片数并不是固定，他是按集群内索引创建和节点的加入，针对当前集群状态进行平均分配的。
 **以上内容来源于>[Elasticsearch: 权威指南 集群内的原理](https://www.elastic.co/guide/cn/elasticsearch/guide/current/distributed-cluster.html "集群内的原理")**
 
 
 ### 分布式文档存储
+##### 路由一个文档到一个分片中
+回顾以前的知识，索引是什么？索引实际指的是一个或者多个物理分片的逻辑命名空间。
+当索引一个文档的时候，数据为了均匀分布在分片内，使用的是轮询算法通过文档的_id **【可以自定义】****【API中可以指定路由】**，通过hash算法与当前分片求余数。达到均匀分布在分片内。反过来看理解成索引有着一套路由，知道文档存储在哪一个分片中。**【路由规则是和主分片数量有关的，这也就是集群内我们可以修改副本数量却不能修改主分片数量】**
+
+
+##### 主分片和副本分片如何交互
+###### 构建有三个节点和一个索引的集群
+
+
+![三个节点的集群](https://www.elastic.co/guide/cn/elasticsearch/guide/current/images/elas_0401.png "三个节点的集群")
+当前集群情况
+```
+http://127.0.0.1:9200/_cat/indices?v
+
+[Reponse]
+health status index  uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   blogs1 JuAsmZ0NRz6FqqxcWMbuJQ   4   1          0            0        2kb            1kb
+yellow open   blogs  vu4fDMv0Q0Ka1mIm3ndXFg   3   2          0            0      1.5kb           783b
+```
+删除blogs1的索引,集群内增加节点
+```
+#删除blogs1的索引
+[DELETE] http://127.0.0.1:9200/blogs1
+
+[Reponse]
+{
+    "acknowledged": true
+}
+
+#启动新一个节点
+docker run -di --name=myes3 -p 9202:9202 -p 9302:9302 -v G:/docker/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml elasticsearch:6.4.3
+
+#查看两个ES实例在Docker容器内的Ip
+docker inspect myes3
+
+[Reponse]
+IPAddress: 172.17.0.4
+
+#修改G:/docker/elasticsearch.yml
+discovery.zen.minimum_master_nodes: 3
+discovery.zen.ping.unicast.hosts: ["127.0.0.1","172.17.0.2:9200","172.17.0.3:9201","172.17.0.4:9202","172.17.0.2:9300","172.17.0.3:9301","172.17.0.4:9302"]
+
+#重启节点
+docker restart myes1 myes2 myes3
+
+#查看集群状态和索引状态
+http://127.0.0.1:9200/_cluster/health
+
+[Reponse]
+{
+  "cluster_name": "docker-cluster",
+  "status": "green",
+  "timed_out": false,
+  "number_of_nodes": 3,
+  "number_of_data_nodes": 3,
+  "active_primary_shards": 3,
+  "active_shards": 9,
+  "relocating_shards": 0,
+  "initializing_shards": 0,
+  "unassigned_shards": 0,
+  "delayed_unassigned_shards": 0,
+  "number_of_pending_tasks": 0,
+  "number_of_in_flight_fetch": 0,
+  "task_max_waiting_in_queue_millis": 0,
+  "active_shards_percent_as_number": 100.0
+}
+
+http://127.0.0.1:9200/_cat/indices?v
+
+[Reponse]
+health status index uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   blogs vu4fDMv0Q0Ka1mIm3ndXFg   3   2          0            0      2.2kb           783b
+
+```
+###### 处理发送到集群的请求
+集群内的任意节点，具有处理任意请求的能力。任意节点都是知道集群内任意数据的位置。可以将需要的请求转发到需要的节点中。我们把处理发送到集群的节点称为**协调节点**。**【建议处理发送到集群的节点可以通过轮询的方式，均匀的分到集群内的所有节点】**
+
+###### 新建、删除、索引、文档
+
+
+

@@ -26,24 +26,23 @@ import java.util.Set;
 public class SearchTest2 {
     @Test
     void testMessageQueue() {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        Criteria criteria = Criteria.where("news_digest");
-        GeoPoint geoPoint = new GeoPoint(10,20);
-        GeoBox geoBox = new GeoBox(geoPoint,geoPoint);
-        criteria = criteria.phrase("达能")
-                .and("news_content").phrase("达能")
-                .and("app_name").phrase("达能")
-                .and("type").is("weibo")
-                .and("news_posttime").between("2019-09-01 00:00:00","2019-10-01 00:00:00")
-                .boundedBy(geoBox);
+//        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+//        Criteria orCriteria = new Criteria();
+//        orCriteria = orCriteria.or("news_title").phrase("邮政储蓄")
+//                .or("news_digest").phrase("邮政储蓄")
+//                .or("news_content").phrase("邮政储蓄");
+//        Criteria criteria = new Criteria().and(orCriteria);
+////                .and("news_media").is("app")
+////                .and("news_posttime").between("2019-05-21 00:00:00", "2019-05-22 00:00:00");
+//        CriteriaQueryProcessor processor = new CriteriaQueryProcessor();
+//        QueryBuilder queryBuilder = processor.createQueryFromCriteria(criteria);
+        Criteria orCriteria = new Criteria()
+                .or("news_title").phrase("邮政储蓄")
+                .or("news_digest").phrase("邮政储蓄")
+                .or("news_content").phrase("邮政储蓄");
+        Criteria criteria = new Criteria.OrCriteria().or(orCriteria);
         CriteriaQueryProcessor processor = new CriteriaQueryProcessor();
         QueryBuilder queryBuilder = processor.createQueryFromCriteria(criteria);
-        TermsAggregationBuilder aggregation = AggregationBuilders.terms("by_company")
-                .field("name");
-        searchSourceBuilder.query(queryBuilder);
-        searchSourceBuilder.aggregation(aggregation);
-        searchSourceBuilder.sort("news_content");
-        searchSourceBuilder.fetchSource(new String[]{"news_content","app_name"},new String[]{});
-        System.out.println(searchSourceBuilder.toString());
+        System.out.println(queryBuilder.toString());
     }
 }
