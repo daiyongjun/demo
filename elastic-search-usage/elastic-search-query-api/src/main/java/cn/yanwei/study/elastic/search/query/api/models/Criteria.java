@@ -35,8 +35,6 @@ public class Criteria implements Serializable, Cloneable {
 
     private Set<CriteriaEntry> queryCriteria = new LinkedHashSet<>();
 
-    private Set<CriteriaEntry> filterCriteria = new LinkedHashSet<>();
-
     @Override
     public Criteria clone() {
         Criteria clone = null;
@@ -122,16 +120,6 @@ public class Criteria implements Serializable, Cloneable {
     /**
      * Chain using {@code AND}
      *
-     * @param field 操作的列对象
-     * @return Criteria
-     */
-    private Criteria and(Field field) {
-        return new Criteria(this.criteriaChain, field);
-    }
-
-    /**
-     * Chain using {@code AND}
-     *
      * @param criteria 操作的列对象
      * @return Criteria
      */
@@ -149,6 +137,27 @@ public class Criteria implements Serializable, Cloneable {
             this.criteriaChain.add(appearance);
             return this;
         }
+    }
+
+    /**
+     * Chain using {@code OR}
+     *
+     * @return Criteria
+     */
+    public Criteria or() {
+        ListIterator<Criteria> chainIterator = this.getCriteriaChain().listIterator();
+        List<Criteria> criteria = new ArrayList<>();
+        while (chainIterator.hasNext()) {
+            Criteria chainedCriteria = chainIterator.next();
+            Criteria or = new OrCriteria();
+            or.criteriaChain.addAll(chainedCriteria.criteriaChain);
+            or.queryCriteria.addAll(chainedCriteria.queryCriteria);
+            or.setField(this.getField());
+            criteria.add(or);
+        }
+        this.criteriaChain.clear();
+        this.criteriaChain.addAll(criteria);
+        return this;
     }
 
     /**
@@ -178,26 +187,19 @@ public class Criteria implements Serializable, Cloneable {
      * @return Criteria
      */
     public Criteria or(Criteria criteria) {
+        Assert.notNull(criteria, "Cannot chain 'null' criteria.");
+        Criteria appearance = new OrCriteria();
+        Criteria orConnectedCritiera = new OrCriteria();
+        orConnectedCritiera.criteriaChain.addAll(criteria.criteriaChain);
+        orConnectedCritiera.queryCriteria.addAll(criteria.queryCriteria);
+        orConnectedCritiera.setField(criteria.getField());
         if (this.getCriteriaChain().size() == 0) {
-            Assert.notNull(criteria, "Cannot chain 'null' criteria.");
-            Criteria appearance = new OrCriteria();
-            //replace this对象，解决new Criteria.OrCriteria().or(Criteria criteria)
             Criteria replace = new OrCriteria();
-            Criteria orConnectedCritiera = new OrCriteria();
-            orConnectedCritiera.criteriaChain.addAll(criteria.criteriaChain);
-            orConnectedCritiera.queryCriteria.addAll(criteria.queryCriteria);
-            orConnectedCritiera.setField(criteria.getField());
             replace.criteriaChain.add(orConnectedCritiera);
             replace.recursion += 1;
             appearance.criteriaChain.add(replace);
             return appearance;
         } else {
-            Assert.notNull(criteria, "Cannot chain 'null' criteria.");
-            Criteria appearance = new OrCriteria();
-            Criteria orConnectedCritiera = new OrCriteria();
-            orConnectedCritiera.criteriaChain.addAll(criteria.criteriaChain);
-            orConnectedCritiera.queryCriteria.addAll(criteria.queryCriteria);
-            orConnectedCritiera.setField(criteria.getField());
             appearance.criteriaChain.add(orConnectedCritiera);
             appearance.recursion += 1;
             this.criteriaChain.add(appearance);
@@ -205,6 +207,15 @@ public class Criteria implements Serializable, Cloneable {
         }
     }
 
+    /**
+     * Crates new CriteriaEntry with trailing -
+     *
+     * @return Criteria
+     */
+    public Criteria not() {
+        this.negating = true;
+        return this;
+    }
 
     /**
      * Crates new CriteriaEntry without any wildcards
@@ -272,16 +283,6 @@ public class Criteria implements Serializable, Cloneable {
     public Criteria endsWith(String s) {
         assertNoBlankInWildcardedQuery(s, false, true);
         queryCriteria.add(new CriteriaEntry(OperationKey.ENDS_WITH, s));
-        return this;
-    }
-
-    /**
-     * Crates new CriteriaEntry with trailing -
-     *
-     * @return Criteria
-     */
-    public Criteria not() {
-        this.negating = true;
         return this;
     }
 
@@ -393,22 +394,13 @@ public class Criteria implements Serializable, Cloneable {
     }
 
     private List<Object> toCollection(Object... values) {
-        if (values.length == 0 || (values.length > 1 && values[1] instanceof Collection)) {
+        boolean condition = values.length == 0 || (values.length > 1 && values[1] instanceof Collection);
+        if (condition) {
             throw new InvalidDataAccessApiUsageException(
                     "At least one element " + (values.length > 0 ? ("of argument of type " + values[1].getClass().getName()) : "")
                             + " has to be present.");
         }
         return Arrays.asList(values);
-    }
-
-    public Criteria notIn(Object... values) {
-        return notIn(toCollection(values));
-    }
-
-    private Criteria notIn(Iterable<?> values) {
-        Assert.notNull(values, "Collection of 'NotIn' values must not be null");
-        queryCriteria.add(new CriteriaEntry(OperationKey.NOT_IN, values));
-        return this;
     }
 
     private void assertNoBlankInWildcardedQuery(String searchString, boolean leadingWildcard, boolean trailingWildcard) {
@@ -431,13 +423,6 @@ public class Criteria implements Serializable, Cloneable {
         return Collections.unmodifiableSet(this.queryCriteria);
     }
 
-    public Set<CriteriaEntry> getFilterCriteriaEntries() {
-        return Collections.unmodifiableSet(this.filterCriteria);
-    }
-
-    public Set<CriteriaEntry> getFilterCriteria() {
-        return filterCriteria;
-    }
 
     /**
      * Conjunction to be used with this criteria (AND | OR)
@@ -456,10 +441,6 @@ public class Criteria implements Serializable, Cloneable {
         return this.negating;
     }
 
-    public boolean isAnd() {
-        return AND_OPERATOR.equals(getConjunctionOperator());
-    }
-
     public boolean isOr() {
         return OR_OPERATOR.equals(getConjunctionOperator());
     }
@@ -469,24 +450,12 @@ public class Criteria implements Serializable, Cloneable {
     }
 
     public static class OrCriteria extends Criteria {
-        public OrCriteria() {
+        OrCriteria() {
             super();
         }
 
-        public OrCriteria(Field field) {
-            super(field);
-        }
-
-        public OrCriteria(List<Criteria> criteriaChain, Field field) {
+        OrCriteria(List<Criteria> criteriaChain, Field field) {
             super(criteriaChain, field);
-        }
-
-        public OrCriteria(List<Criteria> criteriaChain, String fieldname) {
-            super(criteriaChain, fieldname);
-        }
-
-        public OrCriteria(String fieldname) {
-            super(fieldname);
         }
 
         @Override
