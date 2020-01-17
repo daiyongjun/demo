@@ -2,10 +2,8 @@ package cn.yanwei.study.elastic.search.query.api.domain;
 
 import cn.yanwei.study.elastic.search.query.api.constants.OperationKey;
 import cn.yanwei.study.elastic.search.query.api.models.Criteria;
-import org.apache.lucene.queryparser.flexible.core.util.StringUtils;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.util.Assert;
 
@@ -31,8 +29,7 @@ public class CriteriaQueryProcessor {
         List<QueryBuilder> mustQueryBuilderList = new LinkedList<>();
 
         ListIterator<Criteria> chainIterator = criteria.getCriteriaChain().listIterator();
-        QueryBuilder queryFragmentForCriteria = null;
-        int length = 1;
+        QueryBuilder queryFragmentForCriteria;
         while (chainIterator.hasNext()) {
             Criteria chainedCriteria = chainIterator.next();
             if (chainedCriteria.getRecursion() > 0) {
@@ -49,7 +46,6 @@ public class CriteriaQueryProcessor {
                     mustQueryBuilderList.add(queryFragmentForCriteria);
                 }
             }
-            length++;
         }
         BoolQueryBuilder query = null;
 
@@ -116,14 +112,15 @@ public class CriteriaQueryProcessor {
             case EQUALS:
                 query = termQuery(fieldName, searchText);
                 break;
-            case CONTAINS:
-                query = wildcardQuery(fieldName, "*" + searchText + "*");
+            case IN:
+                Collection<?> list = (Collection<?>) (value);
+                query = termsQuery(fieldName, list);
                 break;
-            case STARTS_WITH:
-                query = wildcardQuery(fieldName, searchText + "*");
+            case LESS:
+                query = rangeQuery(fieldName).lt(value);
                 break;
-            case ENDS_WITH:
-                query = wildcardQuery(fieldName, "*" + searchText);
+            case GREATER:
+                query = rangeQuery(fieldName).gt(value);
                 break;
             case LESS_EQUAL:
                 query = rangeQuery(fieldName).lte(value);
@@ -135,43 +132,28 @@ public class CriteriaQueryProcessor {
                 Object[] ranges = (Object[]) value;
                 query = rangeQuery(fieldName).from(ranges[0]).to(ranges[1]);
                 break;
-            case LESS:
-                query = rangeQuery(fieldName).lt(value);
-                break;
-            case GREATER:
-                query = rangeQuery(fieldName).gt(value);
-                break;
-            case FUZZY:
-                query = fuzzyQuery(fieldName, searchText);
-                break;
-            case IN:
-                Collection<?> list = (Collection<?>) (value);
-                query = termsQuery(fieldName, list);
-                break;
-            case NOT_IN:
-                query = boolQuery().mustNot(termsQuery(fieldName, toStringList((Iterable<Object>) value)));
-                break;
-            case QUERY_STRING:
-                query = queryStringQuery((String) value).defaultField(fieldName).defaultOperator(Operator.AND);
-                break;
             case MATCH:
                 query = matchQuery(fieldName, searchText);
                 break;
             case MATCH_PHRASE:
                 query = matchPhraseQuery(fieldName, searchText);
                 break;
+            case STARTS_WITH:
+                query = wildcardQuery(fieldName, searchText + "*");
+                break;
+            case ENDS_WITH:
+                query = wildcardQuery(fieldName, "*" + searchText);
+                break;
+            case CONTAINS:
+                query = wildcardQuery(fieldName, "*" + searchText + "*");
+                break;
+            case FUZZY:
+                query = fuzzyQuery(fieldName, searchText);
+                break;
             default:
                 break;
         }
         return query;
-    }
-
-    private static List<String> toStringList(Iterable<?> iterable) {
-        List<String> list = new ArrayList<>();
-        for (Object item : iterable) {
-            list.add(StringUtils.toString(item));
-        }
-        return list;
     }
 
     private void addBoost(QueryBuilder query, float boost) {

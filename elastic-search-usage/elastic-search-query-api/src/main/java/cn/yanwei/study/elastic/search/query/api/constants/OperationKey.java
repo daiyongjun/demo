@@ -13,17 +13,17 @@ public enum OperationKey {
      */
     EQUALS,
     /**
-     * wildcardQuery
+     * termsQuery
      */
-    CONTAINS,
+    IN,
     /**
-     * * + wildcardQuery
+     * rangeQuery lt
      */
-    STARTS_WITH,
+    LESS,
     /**
-     * wildcardQuery + *
+     * rangeQuery gt
      */
-    ENDS_WITH,
+    GREATER,
     /**
      * rangeQuery lte
      */
@@ -37,30 +37,6 @@ public enum OperationKey {
      */
     BETWEEN,
     /**
-     * rangeQuery lt
-     */
-    LESS,
-    /**
-     * rangeQuery gt
-     */
-    GREATER,
-    /**
-     * fuzzyQuery
-     */
-    FUZZY,
-    /**
-     * termsQuery
-     */
-    IN,
-    /**
-     * mustNot termsQuery
-     */
-    NOT_IN,
-    /**
-     * queryStringQuery
-     */
-    QUERY_STRING,
-    /**
      * matchQuery
      */
     MATCH,
@@ -68,8 +44,21 @@ public enum OperationKey {
      * matchPhraseQuery
      */
     MATCH_PHRASE,
-    MUST,
-    MUST_NOT,
-    SHOULD,
+    /**
+     * wildcardQuery
+     */
+    CONTAINS,
+    /**
+     * * + wildcardQuery
+     */
+    STARTS_WITH,
+    /**
+     * wildcardQuery + *
+     */
+    ENDS_WITH,
+    /**
+     * fuzzyQuery
+     */
+    FUZZY,
     EXISTS,
 }

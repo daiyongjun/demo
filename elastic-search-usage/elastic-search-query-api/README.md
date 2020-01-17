@@ -2,11 +2,11 @@
 
 >[CSDN：Elasticsearch 6.4基本操作 - Java版](https://www.cnblogs.com/swordfall/p/9981883.html "引用文章")
 
-
-
 >[Elasticsearch Guide：Java Low Rest Client](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-low.html "Java Low Rest Client")
 
 >[Elasticsearch Guide：High Level REST Client](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high.html "High Level REST Client")
+
+>[简书：spring data elasticsearch 使用及源码分析](https://www.jianshu.com/p/6facb870793e "spring data elasticsearch 使用及源码分析")
 
 >[简书：Win10中Docker安装Elasticsearch](https://www.jianshu.com/p/9698cc75e00c "Docker安装Elasticsearch")
 
@@ -28,7 +28,7 @@
  ##### 概述
 ElasticSearch版本将主要使 **Rest Client**操作数据，
  **Rest Client**分为 **Java Low REST Client** 和 **Java High Level REST Client**。
- 
+
  ##### RestClient Usage
  ###### 使用docker安装Elasticsearch 6.4.3版本
  ```
@@ -108,20 +108,784 @@ RestClient该类是线程安全的，并且理想情况下与使用该类的应�
 ```
 restClient.close();
 ```
-设置一个侦听器，该侦听器在每次节点发生故障时得到通知，以防需要采取措施。启用嗅探失败时在内部使用。
-```
-RestClientBuilder builder = RestClient.builder(
-    new HttpHost("localhost", 9200, "http"));
-Header[] defaultHeaders = new Header[]{new BasicHeader("header", "value")};
-builder.setDefaultHeaders(defaultHeaders);
-```
- 
- RequestConfigCallback和HttpClientConfigCallback ，允许对
-![image](0C201E44AB5743F281C65CA322B196E6)
+#### Java High Level REST Client 
+*Java High Level REST Client*和*Java Low REST Client* 的区别
 
+ ![空内容节点](src\main\resources\restclient.png "空内容节点")
 
 #### spring data elastic search
-String... args 为java1.5版本后引入的新特性
-其实就是String[] args的简写版。
+#### 使用
+使用我们可以参考
+>[Spring Data Elasticsearch](https://docs.spring.io/spring-data/elasticsearch/docs/3.2.3.RELEASE/reference/html/#reference "Spring Data Elasticsearch")
+#### 源码分析
+>[简书：spring data elasticsearch 使用及源码分析](https://www.jianshu.com/p/6facb870793e "spring data elasticsearch 使用及源码分析")
+```
+switch (key) {
+    case EQUALS:
+		query = termQuery(fieldName, searchText);
+		break;
+    case IN:
+		Collection<?> list = (Collection<?>) (value);
+		query = termsQuery(fieldName, list);
+		break;
+    case LESS:
+		query = rangeQuery(fieldName).lt(value);
+		break;
+    case GREATER:
+		query = rangeQuery(fieldName).gt(value);
+		break;
+    case LESS_EQUAL:
+		query = rangeQuery(fieldName).lte(value);
+		break;
+    case GREATER_EQUAL:
+		query = rangeQuery(fieldName).gte(value);
+		break;
+    case BETWEEN:
+		Object[] ranges = (Object[]) value;
+		query = rangeQuery(fieldName).from(ranges[0]).to(ranges[1]);
+		break;
+```
 
-SimpleElasticsearchRepository
+
+#### grammar rule 基础语法
+**term查询**
+```
+Criteria term = new Criteria("new_tile").is("测试规则");
+String query = processor.createQueryFromCriteria(term).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "term" : {
+          "new_tile" : {
+            "value" : "测试规则",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+**terms查询**
+```
+Criteria terms = new Criteria("new_tile").in((Object[]) new String[]{"测试规则","测试规则2"});
+query = processor.createQueryFromCriteria(terms).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "terms" : {
+          "new_tile" : [
+            "测试规则",
+            "测试规则2"
+          ],
+          "boost" : 1.0
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+**terms(not in)查询**
+```
+Criteria exclude_terms = new Criteria("new_tile").in((Object[]) new String[]{"测试规则","测试规则2"}).not();
+query = processor.createQueryFromCriteria(exclude_terms).toString();
+
+{
+  "bool" : {
+    "must_not" : [
+      {
+        "terms" : {
+          "new_tile" : [
+            "测试规则",
+            "测试规则2"
+          ],
+          "boost" : 1.0
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**greater than查询**
+
+```
+Criteria greater_than = new Criteria("news_posttime").greaterThan("2019-06-01T00:00:36");
+query = processor.createQueryFromCriteria(greater_than).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "range" : {
+          "news_posttime" : {
+            "from" : "2019-06-01T00:00:36",
+            "to" : null,
+            "include_lower" : false,
+            "include_upper" : true,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**less than查询**
+```
+Criteria less_than = new Criteria("news_posttime").lessThan("2019-06-01T00:00:36");
+query = processor.createQueryFromCriteria(less_than).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "range" : {
+          "news_posttime" : {
+            "from" : null,
+            "to" : "2019-06-01T00:00:36",
+            "include_lower" : true,
+            "include_upper" : false,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**greater than equal查询**
+
+```
+Criteria greater_than_equal = new Criteria("news_posttime").greaterThanEqual("2019-06-01T00:00:36");
+query = processor.createQueryFromCriteria(greater_than_equal).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "range" : {
+          "news_posttime" : {
+            "from" : "2019-06-01T00:00:36",
+            "to" : null,
+            "include_lower" : true,
+            "include_upper" : true,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**less than equal查询**
+
+```
+Criteria less_than_equal = new Criteria("news_posttime").lessThanEqual("2019-06-01T00:00:36");
+query = processor.createQueryFromCriteria(less_than_equal).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "range" : {
+          "news_posttime" : {
+            "from" : null,
+            "to" : "2019-06-01T00:00:36",
+            "include_lower" : true,
+            "include_upper" : true,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**between查询**
+
+```
+Criteria between = new Criteria("news_posttime").between("2019-06-01T00:00:36","2019-12-21T14:02:36");
+query = processor.createQueryFromCriteria(between).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "range" : {
+          "news_posttime" : {
+            "from" : "2019-06-01T00:00:36",
+            "to" : "2019-12-21T14:02:36",
+            "include_lower" : true,
+            "include_upper" : true,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**match查询**
+
+```
+Criteria match = new Criteria("news_content").match("测试");
+query = processor.createQueryFromCriteria(match).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "match" : {
+          "news_content" : {
+            "query" : "测试",
+            "operator" : "OR",
+            "prefix_length" : 0,
+            "max_expansions" : 50,
+            "fuzzy_transpositions" : true,
+            "lenient" : false,
+            "zero_terms_query" : "NONE",
+            "auto_generate_synonyms_phrase_query" : true,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**match phrase查询**
+
+```
+Criteria match_phrase = new Criteria("news_content").phrase("测试");
+query = processor.createQueryFromCriteria(match_phrase).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "match_phrase" : {
+          "news_content" : {
+            "query" : "测试",
+            "slop" : 0,
+            "zero_terms_query" : "NONE",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**【正则】starts with查询**
+
+```
+Criteria starts_with = new Criteria("news_content").startsWith("测试");
+query = processor.createQueryFromCriteria(starts_with).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "wildcard" : {
+          "news_content" : {
+            "wildcard" : "测试*",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**【正则】ends with查询**
+
+```
+Criteria ends_with = new Criteria("news_content").endsWith("测试");
+query = processor.createQueryFromCriteria(ends_with).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "wildcard" : {
+          "news_content" : {
+            "wildcard" : "*测试",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+**【正则】contains查询**
+
+```
+Criteria contains = new Criteria("news_content").contains("测试");
+query = processor.createQueryFromCriteria(contains).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "wildcard" : {
+          "news_content" : {
+            "wildcard" : "*测试*",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+**【正则】fuzzy查询**
+
+```
+Criteria fuzzy = new Criteria("news_content").fuzzy("测试");
+query = processor.createQueryFromCriteria(fuzzy).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "fuzzy" : {
+          "news_content" : {
+            "value" : "测试",
+            "fuzziness" : "AUTO",
+            "prefix_length" : 0,
+            "max_expansions" : 50,
+            "transpositions" : false,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+
+#### logic relation 基础语法
+**must逻辑关系**
+```
+Criteria must = new Criteria("new_tile").is("测试规则");
+String query = processor.createQueryFromCriteria(must).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "term" : {
+          "new_tile" : {
+            "value" : "测试规则",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+**should逻辑关系**
+```
+Criteria should = new Criteria("new_tile").is("测试规则").or();
+query = processor.createQueryFromCriteria(should).toString();
+
+{
+  "bool" : {
+    "should" : [
+      {
+        "term" : {
+          "new_tile" : {
+            "value" : "测试规则",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "minimum_should_match" : "1",
+    "boost" : 1.0
+  }
+}
+```
+
+**must not逻辑关系**
+```
+Criteria must_not = new Criteria("new_tile").is("测试规则").not();
+query = processor.createQueryFromCriteria(must_not).toString();
+
+{
+  "bool" : {
+    "must_not" : [
+      {
+        "term" : {
+          "new_tile" : {
+            "value" : "测试规则",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+
+
+#### complex logic relation 基础语法
+
+**must[grammar...]**
+
+```
+Criteria must = new Criteria().and("news_title").phrase("测试1").and("news_content").phrase("测试2");
+String query = processor.createQueryFromCriteria(must).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "match_phrase" : {
+          "news_title" : {
+            "query" : "测试1",
+            "slop" : 0,
+            "zero_terms_query" : "NONE",
+            "boost" : 1.0
+          }
+        }
+      },
+      {
+        "match_phrase" : {
+          "news_content" : {
+            "query" : "测试2",
+            "slop" : 0,
+            "zero_terms_query" : "NONE",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+**should[grammar...]**
+
+```
+Criteria should = new Criteria().or("news_title").phrase("测试1").or("news_content").phrase("测试2");
+query = processor.createQueryFromCriteria(should).toString();
+
+{
+  "bool" : {
+    "should" : [
+      {
+        "match_phrase" : {
+          "news_title" : {
+            "query" : "测试1",
+            "slop" : 0,
+            "zero_terms_query" : "NONE",
+            "boost" : 1.0
+          }
+        }
+      },
+      {
+        "match_phrase" : {
+          "news_content" : {
+            "query" : "测试2",
+            "slop" : 0,
+            "zero_terms_query" : "NONE",
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "adjust_pure_negative" : true,
+    "minimum_should_match" : "1",
+    "boost" : 1.0
+  }
+}
+```
+
+**must[should[grammar...],should[grammar...]]**
+
+```
+Criteria c_must = new Criteria().and(should).and(should);
+query = processor.createQueryFromCriteria(c_must).toString();
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "bool" : {
+          "should" : [
+            {
+              "match_phrase" : {
+                "news_title" : {
+                  "query" : "测试1",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            },
+            {
+              "match_phrase" : {
+                "news_content" : {
+                  "query" : "测试2",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            }
+          ],
+          "disable_coord" : false,
+          "adjust_pure_negative" : true,
+          "minimum_should_match" : "1",
+          "boost" : 1.0
+        }
+      },
+      {
+        "bool" : {
+          "should" : [
+            {
+              "match_phrase" : {
+                "news_title" : {
+                  "query" : "测试1",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            },
+            {
+              "match_phrase" : {
+                "news_content" : {
+                  "query" : "测试2",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            }
+          ],
+          "disable_coord" : false,
+          "adjust_pure_negative" : true,
+          "minimum_should_match" : "1",
+          "boost" : 1.0
+        }
+      }
+    ],
+    "disable_coord" : false,
+    "adjust_pure_negative" : true,
+    "boost" : 1.0
+  }
+}
+```
+**should[must[grammar...],must[grammar...]]**
+
+```
+Criteria c_should = new Criteria().or(must).or(must);
+query = processor.createQueryFromCriteria(c_should).toString();
+
+{
+  "bool" : {
+    "should" : [
+      {
+        "bool" : {
+          "must" : [
+            {
+              "match_phrase" : {
+                "news_title" : {
+                  "query" : "测试1",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            },
+            {
+              "match_phrase" : {
+                "news_content" : {
+                  "query" : "测试2",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            }
+          ],
+          "disable_coord" : false,
+          "adjust_pure_negative" : true,
+          "boost" : 1.0
+        }
+      },
+      {
+        "bool" : {
+          "must" : [
+            {
+              "match_phrase" : {
+                "news_title" : {
+                  "query" : "测试1",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            },
+            {
+              "match_phrase" : {
+                "news_content" : {
+                  "query" : "测试2",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            }
+          ],
+          "disable_coord" : false,
+          "adjust_pure_negative" : true,
+          "boost" : 1.0
+        }
+      }
+    ],
+    "disable_coord" : false,
+    "adjust_pure_negative" : true,
+    "minimum_should_match" : "1",
+    "boost" : 1.0
+  }
+}
+
+```
+
+**实战 我们去video中查找相关的vivo和oppo的相关的文档**
+
+```
+//title中
+Criteria title = new Criteria().and("news_title").phrase("vivo").and("news_title").phrase("oppo");
+//content中
+Criteria content = new Criteria().and("news_content").phrase("vivo").and("news_content").phrase("oppo");
+Criteria criteria = new Criteria().or(title).or(content).and("news_posttime").between("2019-01-01T00:00:00", "2020-01-11T00:00:00");
+query = processor.createQueryFromCriteria(criteria).toString();
+
+
+{
+  "bool" : {
+    "must" : [
+      {
+        "range" : {
+          "news_posttime" : {
+            "from" : "2019-01-01T00:00:00",
+            "to" : "2020-01-11T00:00:00",
+            "include_lower" : true,
+            "include_upper" : true,
+            "boost" : 1.0
+          }
+        }
+      }
+    ],
+    "should" : [
+      {
+        "bool" : {
+          "must" : [
+            {
+              "match_phrase" : {
+                "news_title" : {
+                  "query" : "vivo",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            },
+            {
+              "match_phrase" : {
+                "news_title" : {
+                  "query" : "oppo",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            }
+          ],
+          "disable_coord" : false,
+          "adjust_pure_negative" : true,
+          "boost" : 1.0
+        }
+      },
+      {
+        "bool" : {
+          "must" : [
+            {
+              "match_phrase" : {
+                "news_content" : {
+                  "query" : "vivo",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            },
+            {
+              "match_phrase" : {
+                "news_content" : {
+                  "query" : "oppo",
+                  "slop" : 0,
+                  "boost" : 1.0
+                }
+              }
+            }
+          ],
+          "disable_coord" : false,
+          "adjust_pure_negative" : true,
+          "boost" : 1.0
+        }
+      }
+    ],
+    "disable_coord" : false,
+    "adjust_pure_negative" : true,
+    "minimum_should_match" : "1",
+    "boost" : 1.0
+  }
+}
+
+```
+
