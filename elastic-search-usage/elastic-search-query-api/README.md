@@ -1,4 +1,4 @@
-
+# elastic-search-query-api
 
 >[CSDN：Elasticsearch 6.4基本操作 - Java版](https://www.cnblogs.com/swordfall/p/9981883.html "引用文章")
 
@@ -12,7 +12,7 @@
 
 >[书籍：精通Elastic Stack](https://book.douban.com/subject/30326542/ "精通Elastic Stack")
 
-### 1. Elasticsearch Java API有四类client连接方式
+### Elasticsearch Java API有四类client连接方式
 - [TransportClient](https://www.cnblogs.com/swordfall/p/9981883.html "Spring Data Elasticsearch") 
 - [RestClient](https://www.cnblogs.com/swordfall/p/9981883.html "Spring Data Elasticsearch")
 - [Jest](https://www.cnblogs.com/swordfall/p/9981883.html "Spring Data Elasticsearch")
@@ -111,7 +111,7 @@ restClient.close();
 #### Java High Level REST Client 
 *Java High Level REST Client*和*Java Low REST Client* 的区别
 
- ![区别](src\main\resources\restclient.png "区别")
+ ![区别](src/main/resources/restclient.png "区别")
 
 #### spring data elastic search
 #### 使用
