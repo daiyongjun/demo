@@ -1,6 +1,6 @@
 # elastic-search-query-api
 
->[CSDN：Elasticsearch 6.4基本操作 - Java版](https://www.cnblogs.com/swordfall/p/9981883.html "引用文章")
+>[csdn：Elasticsearch 6.4基本操作 - Java版](https://www.cnblogs.com/swordfall/p/9981883.html "引用文章")
 
 >[Elasticsearch Guide：Java Low Rest Client](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-low.html "Java Low Rest Client")
 
