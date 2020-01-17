@@ -111,7 +111,7 @@ restClient.close();
 #### Java High Level REST Client 
 *Java High Level REST Client*和*Java Low REST Client* 的区别
 
- ![区别](src\main\resources\restclient.png"区别")
+ ![区别](src/main/resources/restclient.png "区别")
 
 #### spring data elastic search
 #### 使用
