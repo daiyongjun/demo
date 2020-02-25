@@ -12,12 +12,16 @@
     <packaging>pom</packaging>
     <properties>
         <elasticsearch.version>6.4.3</elasticsearch.version>
+        <lombok.version>1.16.20</lombok.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
     <modules>
         <module>elastic-search-client-java</module>
         <module>elastic-search-query-api</module>
         <module>elastic-search-distribute-character</module>
+        <module>elastic-search-query-sql</module>
+        <module>elastic-resolver-sql</module>
     </modules>
 
     <dependencyManagement>
@@ -33,6 +37,17 @@
                 <artifactId>elasticsearch-rest-high-level-client</artifactId>
                 <version>${elasticsearch.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <repositories>
@@ -45,41 +60,41 @@
             <url>https://repo.rdc.aliyun.com/repository/70364-snapshot-G0OIcY/</url>
         </repository>
     </repositories>
-<!--    <build>-->
-<!--        <plugins>-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-shade-plugin</artifactId>-->
-<!--                <version>3.1.0</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>shade</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <relocations>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.http</pattern>-->
-<!--                                    <shadedPattern>hidden.org.apache.http</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.logging</pattern>-->
-<!--                                    <shadedPattern>hidden.org.apache.logging</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.commons.codec</pattern>-->
-<!--                                    <shadedPattern>hidden.org.apache.commons.codec</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.commons.logging</pattern>-->
-<!--                                    <shadedPattern>hidden.org.apache.commons.logging</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                            </relocations>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-<!--        </plugins>-->
-<!--    </build>-->
+    <!--    <build>-->
+    <!--        <plugins>-->
+    <!--            <plugin>-->
+    <!--                <groupId>org.apache.maven.plugins</groupId>-->
+    <!--                <artifactId>maven-shade-plugin</artifactId>-->
+    <!--                <version>3.1.0</version>-->
+    <!--                <executions>-->
+    <!--                    <execution>-->
+    <!--                        <phase>package</phase>-->
+    <!--                        <goals>-->
+    <!--                            <goal>shade</goal>-->
+    <!--                        </goals>-->
+    <!--                        <configuration>-->
+    <!--                            <relocations>-->
+    <!--                                <relocation>-->
+    <!--                                    <pattern>org.apache.http</pattern>-->
+    <!--                                    <shadedPattern>hidden.org.apache.http</shadedPattern>-->
+    <!--                                </relocation>-->
+    <!--                                <relocation>-->
+    <!--                                    <pattern>org.apache.logging</pattern>-->
+    <!--                                    <shadedPattern>hidden.org.apache.logging</shadedPattern>-->
+    <!--                                </relocation>-->
+    <!--                                <relocation>-->
+    <!--                                    <pattern>org.apache.commons.codec</pattern>-->
+    <!--                                    <shadedPattern>hidden.org.apache.commons.codec</shadedPattern>-->
+    <!--                                </relocation>-->
+    <!--                                <relocation>-->
+    <!--                                    <pattern>org.apache.commons.logging</pattern>-->
+    <!--                                    <shadedPattern>hidden.org.apache.commons.logging</shadedPattern>-->
+    <!--                                </relocation>-->
+    <!--                            </relocations>-->
+    <!--                        </configuration>-->
+    <!--                    </execution>-->
+    <!--                </executions>-->
+    <!--            </plugin>-->
+    <!--        </plugins>-->
+    <!--    </build>-->
 </project>

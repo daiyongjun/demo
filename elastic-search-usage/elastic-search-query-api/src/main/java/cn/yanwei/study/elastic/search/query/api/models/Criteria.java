@@ -74,6 +74,10 @@ public class Criteria implements Serializable, Cloneable {
         this(criteriaChain, new SimpleField(fieldname));
     }
 
+    private Criteria(List<Criteria> criteriaChain, String fieldname, Boolean negating) {
+        this(criteriaChain, new SimpleField(fieldname), negating);
+    }
+
     private Criteria(List<Criteria> criteriaChain, Field field) {
         Assert.notNull(criteriaChain, "CriteriaChain must not be null");
         Assert.notNull(field, "Field for criteria must not be null");
@@ -82,6 +86,18 @@ public class Criteria implements Serializable, Cloneable {
         this.field = field;
         Criteria criteria = this.clone();
         criteria.recursion = 0;
+        this.criteriaChain.add(criteria);
+    }
+
+    private Criteria(List<Criteria> criteriaChain, Field field, Boolean negating) {
+        Assert.notNull(criteriaChain, "CriteriaChain must not be null");
+        Assert.notNull(field, "Field for criteria must not be null");
+        Assert.hasText(field.getName(), "Field.name for criteria must not be null/empty");
+        this.criteriaChain.addAll(criteriaChain);
+        this.field = field;
+        Criteria criteria = this.clone();
+        criteria.recursion = 0;
+        criteria.negating = negating;
         this.criteriaChain.add(criteria);
     }
 
@@ -215,6 +231,16 @@ public class Criteria implements Serializable, Cloneable {
     public Criteria not() {
         this.negating = true;
         return this;
+    }
+
+    /**
+     * Chain using {@code NOT}
+     *
+     * @param fieldName 操作的列名
+     * @return Criteria
+     */
+    public Criteria not(String fieldName) {
+        return new Criteria(this.criteriaChain, fieldName, true);
     }
 
     /**
