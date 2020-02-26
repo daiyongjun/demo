@@ -1,5 +1,6 @@
 package cn.yanwei.study.elastic.search.query.sql.domain;
 
+import cn.yanwei.study.elastic.search.query.sql.domain.hints.Hint;
 import cn.yanwei.study.elastic.search.query.sql.parse.SubQueryExpression;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class Select extends BaseQuery {
      * Using this functions, will cause query to execute as aggregation.
      */
     private final List<String> aggsFunctions = Arrays.asList("SUM", "MAX", "MIN", "AVG", "TOPHITS", "COUNT", "STATS", "EXTENDED_STATS", "PERCENTILES", "SCRIPTED_METRIC");
+    private List<Hint> hints = new ArrayList<>();
     private List<Field> fields = new ArrayList<>();
     private List<List<Field>> groupBys = new ArrayList<>();
     private List<Order> orderBys = new ArrayList<>();
@@ -89,6 +91,11 @@ public class Select extends BaseQuery {
         fields.add(field);
     }
 
+    public List<Hint> getHints() {
+        return hints;
+    }
+
+
     public void fillSubQueries() {
         subQueries = new ArrayList<>();
         Where where = this.getWhere();
@@ -128,6 +135,5 @@ public class Select extends BaseQuery {
     public List<SubQueryExpression> getSubQueries() {
         return subQueries;
     }
-
 }
 

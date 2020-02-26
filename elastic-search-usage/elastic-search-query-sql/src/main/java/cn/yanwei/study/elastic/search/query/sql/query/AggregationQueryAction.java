@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import cn.yanwei.study.elastic.search.query.sql.domain.hints.Hint;
+import cn.yanwei.study.elastic.search.query.sql.domain.hints.HintType;
 import com.google.common.collect.Lists;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.join.aggregations.JoinAggregationBuilders;
@@ -49,7 +51,20 @@ public class AggregationQueryAction extends QueryAction {
                 Field field = groupBy.get(0);
                 lastAgg = getGroupAgg(field);
                 if (lastAgg instanceof TermsAggregationBuilder && !(field instanceof MethodField)) {
-                    ((TermsAggregationBuilder) lastAgg).size(select.getRowCount());
+                    //if limit size is too small, increasing shard  size is required
+                    if (select.getRowCount() < 200) {
+                        ((TermsAggregationBuilder) lastAgg).shardSize(2000);
+                        for (Hint hint : select.getHints()) {
+                            if (hint.getType() == HintType.SHARD_SIZE) {
+                                if (hint.getParams() != null && hint.getParams().length != 0 && hint.getParams()[0] != null) {
+                                    ((TermsAggregationBuilder) lastAgg).shardSize((Integer) hint.getParams()[0]);
+                                }
+                            }
+                        }
+                    }
+                    if(select.getRowCount()>0) {
+                        ((TermsAggregationBuilder) lastAgg).size(select.getRowCount());
+                    }
                 }
 
                 if (field.isNested()) {
@@ -121,7 +136,6 @@ public class AggregationQueryAction extends QueryAction {
         // add field
         if (select.getFields().size() > 0) {
             setFields(select.getFields());
-            explanFields(searchSourceBuilder, select.getFields(), lastAgg);
         }
 
         // add order
