@@ -2,7 +2,8 @@ package cn.yanwei.study.elastic.search.query.api;
 
 import cn.yanwei.study.elastic.search.query.api.domain.CriteriaQueryProcessor;
 import cn.yanwei.study.elastic.search.query.api.models.Criteria;
-import org.junit.jupiter.api.Test;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  * Created on date: 2019/12/23 16:20
  */
 class SearchTest {
-    private CriteriaQueryProcessor processor = new CriteriaQueryProcessor();
+    private static CriteriaQueryProcessor processor = new CriteriaQueryProcessor();
 
     /**
      * 测试基础语法规则
@@ -131,41 +132,50 @@ class SearchTest {
     /**
      * 测试简单逻辑关系的使用【filter暂时并不支持和must not】
      */
-    @Test
-    void testComplexLogicRelation() {
+     public static void main(String[] args) {
+        testComplexLogicRelation();
+    }
+    public static void testComplexLogicRelation() {
         //must[grammar...]
-        Criteria must = new Criteria().and("news_title").phrase("测试1").and("news_content").phrase("测试2");
-        String query = processor.createQueryFromCriteria(must).toString();
-        System.out.println(query);
-        assertEquals(StringUtil.messageString(query), "{'bool':{'must':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}");
-
-        //should[grammar...]
-        Criteria should = new Criteria().or("news_title").phrase("测试1").or("news_content").phrase("测试2");
-        query = processor.createQueryFromCriteria(should).toString();
-        System.out.println(query);
-        assertEquals(StringUtil.messageString(query), "{'bool':{'should':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}");
-
-        //must[should[grammar...],should[grammar...]]
-        Criteria c_must = new Criteria().and(should).and(should);
-        query = processor.createQueryFromCriteria(c_must).toString();
-        System.out.println(query);
-        assertEquals(StringUtil.messageString(query), "{'bool':{'must':[{'bool':{'should':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}},{'bool':{'should':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}");
-
-        //should[must[grammar...],must[grammar...]]
-        Criteria c_should = new Criteria().or(must).or(must);
-        query = processor.createQueryFromCriteria(c_should).toString();
-        System.out.println(query);
-        assertEquals(StringUtil.messageString(query), "{'bool':{'should':[{'bool':{'must':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}},{'bool':{'must':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}");
+//        Criteria must = new Criteria().and("news_title").phrase("测试1").and("news_content").phrase("测试2");
+//        String query = processor.createQueryFromCriteria(must).toString();
+//        System.out.println(query);
+//        assertEquals(StringUtil.messageString(query), "{'bool':{'must':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}");
+//
+//        //should[grammar...]
+//        Criteria should = new Criteria().or("news_title").phrase("测试1").or("news_content").phrase("测试2");
+//        query = processor.createQueryFromCriteria(should).toString();
+//        System.out.println(query);
+//        assertEquals(StringUtil.messageString(query), "{'bool':{'should':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}");
+//
+//        //must[should[grammar...],should[grammar...]]
+//        Criteria c_must = new Criteria().and(should).and(should);
+//        query = processor.createQueryFromCriteria(c_must).toString();
+//        System.out.println(query);
+//        assertEquals(StringUtil.messageString(query), "{'bool':{'must':[{'bool':{'should':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}},{'bool':{'should':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}");
+//
+//        //should[must[grammar...],must[grammar...]]
+//        Criteria c_should = new Criteria().or(must).or(must);
+//        query = processor.createQueryFromCriteria(c_should).toString();
+//        System.out.println(query);
+//        assertEquals(StringUtil.messageString(query), "{'bool':{'should':[{'bool':{'must':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}},{'bool':{'must':[{'match_phrase':{'news_title':{'query':'测试1','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'测试2','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}");
 
 
         //实战 我们去video中查找相关的vivo和oppo的相关的文档
-        //title中
-        Criteria title = new Criteria().and("news_title").phrase("vivo").and("news_title").phrase("oppo");
-        //content中
-        Criteria content = new Criteria().and("news_content").phrase("vivo").and("news_content").phrase("oppo");
-        Criteria criteria = new Criteria().or(title).or(content).and("news_posttime").between("2019-01-01T00:00:00", "2020-01-11T00:00:00");
-        query = processor.createQueryFromCriteria(criteria).toString();
-        System.out.println(query);
-        assertEquals(StringUtil.messageString(query), "{'bool':{'must':[{'range':{'news_posttime':{'from':'2019-01-01T00:00:00','to':'2020-01-11T00:00:00','include_lower':true,'include_upper':true,'boost':1.0}}}],'should':[{'bool':{'must':[{'match_phrase':{'news_title':{'query':'vivo','slop':0,'boost':1.0}}},{'match_phrase':{'news_title':{'query':'oppo','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}},{'bool':{'must':[{'match_phrase':{'news_content':{'query':'vivo','slop':0,'boost':1.0}}},{'match_phrase':{'news_content':{'query':'oppo','slop':0,'boost':1.0}}}],'disable_coord':false,'adjust_pure_negative':true,'boost':1.0}}],'disable_coord':false,'adjust_pure_negative':true,'minimum_should_match':'1','boost':1.0}}");
+//          关键词如下：帕萨特、上汽大众、大众帕萨特、Passat、C-NCAP 帕萨特。
+
+        Criteria criteria = new Criteria().
+                or("news_content").phrase("帕萨特").
+//                or("news_title").phrase("上汽大众").
+//                or("news_title").phrase("大众帕萨特").
+//                or("news_title").phrase("Passat").
+//                or("news_title").phrase("C-NCAP 帕萨特").
+        and("news_posttime").between("2020-02-18T00:00:00", "2020-02-24T24:59:59");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(processor.createQueryFromCriteria(criteria));
+        searchSourceBuilder.from(0);
+        searchSourceBuilder.size(1);
+
+        System.out.println(searchSourceBuilder);
     }
 }
