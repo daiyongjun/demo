@@ -1,5 +1,6 @@
 package cn.yanwei.study.elastic.search.query.sql;
 
+import cn.yanwei.study.elastic.search.query.sql.domain.Search;
 import cn.yanwei.study.elastic.search.query.sql.query.EsActionFactory;
 import org.junit.After;
 import org.junit.Test;
@@ -7,6 +8,7 @@ import cn.yanwei.study.elastic.search.query.sql.exception.SqlParseException;
 import cn.yanwei.study.elastic.search.query.sql.query.QueryAction;
 
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Arrays;
 
 public class CommonTest {
 
@@ -18,12 +20,13 @@ public class CommonTest {
 
         System.out.println("sql=\n" + sql);
         QueryAction qa = EsActionFactory.create(sql);
-        System.out.println(qa.explain().toString());
+        Search search = qa.explain();
+        System.out.println(search.getIndex() +"\r\n"+search.getQueryString());
     }
 
     @Test
     public void testSelectStar() {
-        sql = "select * from weibo_202001";
+        sql = "select * from weibo_202001 LIMIT 1000";
     }
 
     @Test

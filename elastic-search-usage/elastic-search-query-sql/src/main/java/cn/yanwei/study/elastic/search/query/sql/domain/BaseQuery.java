@@ -13,7 +13,6 @@ public abstract class BaseQuery {
 	private Where where = null;
 	private List<From> from = new ArrayList<>();
 
-
 	public Where getWhere() {
 		return this.where;
 	}
@@ -24,5 +23,17 @@ public abstract class BaseQuery {
 
 	public List<From> getFrom() {
 		return from;
+	}
+
+	/**
+	 * Get the indexes the query refer to.
+	 * @return list of strings, the indexes names
+	 */
+	public String[] getIndexArr() {
+		String[] indexArr = new String[this.from.size()];
+		for (int i = 0; i < indexArr.length; i++) {
+			indexArr[i] = this.from.get(i).getIndex();
+		}
+		return indexArr;
 	}
 }

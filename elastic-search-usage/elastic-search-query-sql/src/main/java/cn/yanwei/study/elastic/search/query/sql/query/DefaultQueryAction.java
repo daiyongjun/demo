@@ -1,9 +1,11 @@
 package cn.yanwei.study.elastic.search.query.sql.query;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 import cn.yanwei.study.elastic.search.query.sql.domain.*;
+import com.alibaba.fastjson.JSONObject;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
@@ -32,12 +34,15 @@ public class DefaultQueryAction extends QueryAction {
     }
 
     @Override
-    public SearchSourceBuilder explain() throws SqlParseException {
+    public Search explain() throws SqlParseException {
+        Search search = new Search();
         setFields(select.getFields());
         setWhere(select.getWhere());
         setSorts(select.getOrderBys());
         setLimit(select.getOffset(), select.getRowCount());
-        return searchSourceBuilder;
+        search.setIndex(Arrays.toString(query.getIndexArr()).replaceAll("[\\[\\]]",""));
+        search.setQueryString(JSONObject.parseObject(searchSourceBuilder.toString()).toString());
+        return search;
     }
 
 

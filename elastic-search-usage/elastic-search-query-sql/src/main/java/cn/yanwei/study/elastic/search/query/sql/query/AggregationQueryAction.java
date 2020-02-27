@@ -1,11 +1,14 @@
 package cn.yanwei.study.elastic.search.query.sql.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import cn.yanwei.study.elastic.search.query.sql.domain.*;
 import cn.yanwei.study.elastic.search.query.sql.domain.hints.Hint;
 import cn.yanwei.study.elastic.search.query.sql.domain.hints.HintType;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.join.aggregations.JoinAggregationBuilders;
@@ -17,18 +20,13 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import cn.yanwei.study.elastic.search.query.sql.domain.Field;
-import cn.yanwei.study.elastic.search.query.sql.domain.KVValue;
-import cn.yanwei.study.elastic.search.query.sql.domain.MethodField;
-import cn.yanwei.study.elastic.search.query.sql.domain.Order;
-import cn.yanwei.study.elastic.search.query.sql.domain.Select;
-import cn.yanwei.study.elastic.search.query.sql.domain.Where;
 import cn.yanwei.study.elastic.search.query.sql.exception.SqlParseException;
 import cn.yanwei.study.elastic.search.query.sql.query.maker.AggMaker;
 import cn.yanwei.study.elastic.search.query.sql.query.maker.QueryMaker;
 
 /**
  * Transform SQL query to Elasticsearch aggregations query
+ *
  * @author yanwei
  */
 public class AggregationQueryAction extends QueryAction {
@@ -43,7 +41,7 @@ public class AggregationQueryAction extends QueryAction {
     }
 
     @Override
-    public SearchSourceBuilder explain() throws SqlParseException {
+    public Search explain() throws SqlParseException {
         setWhere(select.getWhere());
         AggregationBuilder lastAgg = null;
         for (List<Field> groupBy : select.getGroupBys()) {
@@ -62,7 +60,7 @@ public class AggregationQueryAction extends QueryAction {
                             }
                         }
                     }
-                    if(select.getRowCount()>0) {
+                    if (select.getRowCount() > 0) {
                         ((TermsAggregationBuilder) lastAgg).size(select.getRowCount());
                     }
                 }
@@ -164,7 +162,10 @@ public class AggregationQueryAction extends QueryAction {
                 }
             }
         }
-        return searchSourceBuilder;
+        Search search = new Search();
+        search.setIndex(Arrays.toString(query.getIndexArr()).replaceAll("[\\[\\]]",""));
+        search.setQueryString(JSONObject.parseObject(searchSourceBuilder.toString()).toString());
+        return search;
     }
 
     private AggregationBuilder getGroupAgg(Field field) throws SqlParseException {

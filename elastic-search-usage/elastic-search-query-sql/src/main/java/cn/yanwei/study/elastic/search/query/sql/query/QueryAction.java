@@ -1,6 +1,7 @@
 package cn.yanwei.study.elastic.search.query.sql.query;
 
 import cn.yanwei.study.elastic.search.query.sql.domain.BaseQuery;
+import cn.yanwei.study.elastic.search.query.sql.domain.Search;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import cn.yanwei.study.elastic.search.query.sql.exception.SqlParseException;
@@ -98,5 +99,5 @@ public abstract class QueryAction {
         return chars;
     }
 
-    public abstract SearchSourceBuilder explain() throws SqlParseException;
+    public abstract Search explain() throws SqlParseException;
 }
