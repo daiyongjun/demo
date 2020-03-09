@@ -37,10 +37,22 @@ public class DefaultQueryAction extends QueryAction {
     public Search explain() throws SqlParseException {
         Search search = new Search();
         setFields(select.getFields());
-        setWhere(select.getWhere());
+        //自动解析时间戳的代码
+        Where where;
+        setWhere(where = select.getWhere());
+        Long startStamp = where.getStartStamp();
+        if(startStamp != null){
+            search.setStartStamp(startStamp);
+        }
+        Long endStamp = where.getEndStamp();
+        if(endStamp != null){
+            search.setEndStamp(endStamp);
+        }
         setSorts(select.getOrderBys());
-        setLimit(select.getOffset(), select.getRowCount());
-        search.setIndex(Arrays.toString(query.getIndexArr()).replaceAll("[\\[\\]]",""));
+        //增加count的限制
+        int count = select.getRowCount();
+        setLimit(select.getOffset(), count > 1000 ? 1000 : count);
+        search.setIndex(Arrays.toString(query.getIndexArr()).replaceAll("[\\[\\]]", ""));
         search.setQueryString(JSONObject.parseObject(searchSourceBuilder.toString()).toString());
         return search;
     }

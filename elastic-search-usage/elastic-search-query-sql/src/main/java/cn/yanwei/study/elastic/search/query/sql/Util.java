@@ -1,9 +1,8 @@
 package cn.yanwei.study.elastic.search.query.sql;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.alibaba.druid.sql.ast.expr.*;
@@ -88,7 +87,7 @@ public class Util {
     public static Object getScriptValueWithQuote(SQLExpr expr, String quote) throws SqlParseException {
         if (expr instanceof SQLIdentifierExpr || expr instanceof SQLPropertyExpr || expr instanceof SQLVariantRefExpr) {
             return "doc['" + expr.toString() + "'].value";
-        }  else if (expr instanceof SQLCharExpr) {
+        } else if (expr instanceof SQLCharExpr) {
             return quote + ((SQLCharExpr) expr).getValue() + quote;
         } else if (expr instanceof SQLIntegerExpr) {
             return ((SQLIntegerExpr) expr).getValue();
@@ -148,5 +147,41 @@ public class Util {
         return sqlExpr.toString();
     }
 
+    public static String[] concatStringsArrays(String[] a1, String[] a2) {
+        String[] strings = new String[a1.length + a2.length];
+        for (int i = 0; i < a1.length; i++) {
+            strings[i] = a1[i];
+        }
+        for (int i = 0; i < a2.length; i++) {
+            strings[a1.length + i] = a2[i];
+        }
+        return strings;
+    }
+    /**
+     * 使用默认格式将字符串时间转换成long类型
+     *
+     * @param dateStr 时间的字符串
+     * @param format  指定时间字符串的格式
+     * @return Long
+     */
+    public static Long stringToLong(String dateStr, String format) {
+        return stringToDate(dateStr, format).getTime();
+    }
 
+    /**
+     * 将日期的字符串(格式：指定时间格式)转换为日期
+     *
+     * @param dateStr 日期的字符串
+     * @param format  指定时间字符串的格式
+     * @return Date
+     */
+    private static Date stringToDate(String dateStr, String format) {
+        SimpleDateFormat df = new SimpleDateFormat(format);
+        try {
+            return df.parse(dateStr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

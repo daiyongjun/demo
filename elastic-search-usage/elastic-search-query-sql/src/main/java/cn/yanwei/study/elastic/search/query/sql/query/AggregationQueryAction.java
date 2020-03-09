@@ -33,11 +33,13 @@ public class AggregationQueryAction extends QueryAction {
 
     private final Select select;
     private AggMaker aggMaker = new AggMaker();
-    private SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    private SearchSourceBuilder searchSourceBuilder;
 
     AggregationQueryAction(Select select) {
         super(select);
         this.select = select;
+        this.searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(0);
     }
 
     @Override
@@ -345,6 +347,4 @@ public class AggregationQueryAction extends QueryAction {
             searchSourceBuilder.query(whereQuery);
         }
     }
-
-
 }

@@ -20,7 +20,7 @@ import cn.yanwei.study.elastic.search.query.sql.parse.NestedType;
 public class Condition extends Where {
 
     public enum OPEAR {
-        EQ, GT, LT, GTE, LTE, N, LIKE, NLIKE, IS, ISN, IN, NIN, BETWEEN, NBETWEEN, GEO_INTERSECTS, GEO_BOUNDING_BOX, GEO_DISTANCE, GEO_DISTANCE_RANGE, GEO_POLYGON, GEO_CELL, IN_TERMS, TERM, IDS_QUERY, NESTED_COMPLEX, CHILDREN_COMPLEX, SCRIPT,NIN_TERMS,NTERM;
+        EQ, GT, LT, GTE, LTE, N, LIKE, NLIKE, IS, ISN, IN, NIN, BETWEEN, NBETWEEN, GEO_INTERSECTS, GEO_BOUNDING_BOX, GEO_DISTANCE, GEO_DISTANCE_RANGE, GEO_POLYGON, GEO_CELL, IN_TERMS, TERM, IDS_QUERY, NESTED_COMPLEX, CHILDREN_COMPLEX, SCRIPT, NIN_TERMS, NTERM;
 
         public static Map<String, OPEAR> methodNameToOpear;
 
@@ -41,7 +41,7 @@ public class Condition extends Where {
             negatives = HashBiMap.create(7);
             negatives.put(EQ, N);
             negatives.put(IN_TERMS, NIN_TERMS);
-			negatives.put(TERM, NTERM);
+            negatives.put(TERM, NTERM);
             negatives.put(GT, LTE);
             negatives.put(LT, GTE);
             negatives.put(LIKE, NLIKE);
@@ -369,7 +369,7 @@ public class Condition extends Where {
     @Override
     public Object clone() throws CloneNotSupportedException {
         try {
-            Condition clonedCondition = new Condition(this.getConn(), this.getName(),this.getNameExpr(), this.getOpear(), this.getValue(),this.getValueExpr(), this.getRelationshipType());
+            Condition clonedCondition = new Condition(this.getConn(), this.getName(), this.getNameExpr(), this.getOpear(), this.getValue(), this.getValueExpr(), this.getRelationshipType());
             return clonedCondition;
         } catch (SqlParseException e) {
 

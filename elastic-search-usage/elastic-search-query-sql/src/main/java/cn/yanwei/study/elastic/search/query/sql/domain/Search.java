@@ -13,4 +13,6 @@ import lombok.Data;
 public class Search {
     private String queryString;
     private String index;
+    private Long startStamp = System.currentTimeMillis();
+    private Long endStamp = System.currentTimeMillis();
 }

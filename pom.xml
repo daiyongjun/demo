@@ -15,7 +15,6 @@
     <modules>
         <module>java-based</module>
         <module>elastic-search-usage</module>
-        <module>elastic-search-usage</module>
         <module>java-framework</module>
     </modules>
 
