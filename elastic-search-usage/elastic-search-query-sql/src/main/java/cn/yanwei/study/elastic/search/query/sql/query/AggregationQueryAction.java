@@ -165,7 +165,8 @@ public class AggregationQueryAction extends QueryAction {
             }
         }
         Search search = new Search();
-        search.setIndex(Arrays.toString(query.getIndexArr()).replaceAll("[\\[\\]]",""));
+        String index = Arrays.toString(query.getIndexArr()).replaceAll("[\\[\\]]","");
+        search.setIndex(index.replaceAll(", ",","));
         search.setQueryString(JSONObject.parseObject(searchSourceBuilder.toString()).toString());
         return search;
     }

@@ -23,7 +23,7 @@ public class Select extends BaseQuery {
     private List<List<Field>> groupBys = new ArrayList<>();
     private List<Order> orderBys = new ArrayList<>();
     private int offset;
-    private int rowCount = 200;
+    private int rowCount = 10;
     private boolean containsSubQueries;
     private List<SubQueryExpression> subQueries;
     public boolean isQuery = false;

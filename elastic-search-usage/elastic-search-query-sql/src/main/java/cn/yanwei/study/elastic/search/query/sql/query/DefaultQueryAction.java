@@ -38,16 +38,7 @@ public class DefaultQueryAction extends QueryAction {
         Search search = new Search();
         setFields(select.getFields());
         //自动解析时间戳的代码
-        Where where;
-        setWhere(where = select.getWhere());
-        Long startStamp = where.getStartStamp();
-        if(startStamp != null){
-            search.setStartStamp(startStamp);
-        }
-        Long endStamp = where.getEndStamp();
-        if(endStamp != null){
-            search.setEndStamp(endStamp);
-        }
+        setWhere(select.getWhere(),search);
         setSorts(select.getOrderBys());
         //增加count的限制
         int count = select.getRowCount();
@@ -110,10 +101,19 @@ public class DefaultQueryAction extends QueryAction {
      * @param where the 'WHERE' part of the SQL query.
      * @throws SqlParseException 解析异常
      */
-    private void setWhere(Where where) throws SqlParseException {
+    private void setWhere(Where where,Search search) throws SqlParseException {
         if (where != null) {
             BoolQueryBuilder boolQuery = QueryMaker.explan(where, this.select.isQuery);
             searchSourceBuilder.query(boolQuery);
+            //自动解析时间戳的代码
+            Long startStamp = where.getStartStamp();
+            if (startStamp != null) {
+                search.setStartStamp(startStamp);
+            }
+            Long endStamp = where.getEndStamp();
+            if (endStamp != null) {
+                search.setEndStamp(endStamp);
+            }
         }
     }
 

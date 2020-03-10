@@ -49,17 +49,20 @@ public class QueryMaker extends Maker {
             BoolQueryBuilder subQuery = QueryBuilders.boolQuery();
             addSubQuery(boolQuery, where, subQuery);
             for (Where subWhere : where.getWheres()) {
-                Condition condition = (Condition) subWhere;
-                String name = condition.getName();
-                if ("news_posttime".equals(name)) {
-                    String opr = condition.getOpear().name();
-                    Object value = condition.getValue();
-                    if ("GTE".equals(opr) || "GT".equals(opr)) {
-                        where.setStartStamp(Util.stringToLong((String) value, "yyyy-MM-dd"));
+                try {
+                    Condition condition = (Condition) subWhere;
+                    String name = condition.getName();
+                    if ("news_posttime".equals(name)) {
+                        String opr = condition.getOpear().name();
+                        Object value = condition.getValue();
+                        if ("GTE".equals(opr) || "GT".equals(opr)) {
+                            where.setStartStamp(Util.stringToLong((String) value, "yyyy-MM-dd"));
+                        }
+                        if ("LTE".equals(opr) || "LT".equals(opr)) {
+                            where.setEndStamp(Util.stringToLong((String) value, "yyyy-MM-dd"));
+                        }
                     }
-                    if ("LTE".equals(opr) || "LT".equals(opr)) {
-                        where.setEndStamp(Util.stringToLong((String) value, "yyyy-MM-dd"));
-                    }
+                } catch (Exception ignored) {
                 }
                 explanWhere(subQuery, subWhere);
             }

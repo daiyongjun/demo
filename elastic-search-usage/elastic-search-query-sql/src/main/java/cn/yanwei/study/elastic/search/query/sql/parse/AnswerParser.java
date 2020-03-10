@@ -1,6 +1,7 @@
 package cn.yanwei.study.elastic.search.query.sql.parse;
 
 import com.alibaba.fastjson.JSON;
+import org.apache.http.HttpEntity;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.CheckedFunction;
 import org.elasticsearch.common.ParseField;
@@ -97,6 +98,7 @@ import org.elasticsearch.search.suggest.term.TermSuggestion;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -151,15 +153,37 @@ public class AnswerParser {
      */
     public static SearchResponse parseEntity(final Response entity,
                                              final CheckedFunction<XContentParser, SearchResponse, IOException> entityParser) throws IOException {
-        String contentType = entity.body().contentType().toString();
-        XContentType xContentType = XContentType.fromMediaTypeOrFormat(contentType);
+//        String contentType = entity.body().contentType().toString();
+        XContentType xContentType = XContentType.fromMediaTypeOrFormat("application/json");
+//        if (xContentType == null) {
+//            throw new IllegalStateException("Unsupported Content-Type: " + contentType);
+//        }
+        String rst = entity.body().string();
+        String body = JSON.parseObject(rst).getJSONArray("responses").getJSONObject(0).toJSONString();
+        InputStream inputStream = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
+        try (XContentParser parser = xContentType.xContent().createParser(registry, inputStream)) {
+            return entityParser.apply(parser);
+        }
+    }
+
+
+    /**
+     * 解析   Response 响应的结果
+     *
+     * @param entity       repoonse
+     * @param entityParser 解析器
+     * @return SearchResponse
+     * @throws IOException 异常信息
+     */
+    public static SearchResponse parseEntity(final org.elasticsearch.client.Response entity,
+                                             final CheckedFunction<XContentParser, SearchResponse, IOException> entityParser) throws IOException {
+        HttpEntity httpEntity = entity.getEntity();
+        String contentType = httpEntity.getContentType().toString();
+        XContentType xContentType = XContentType.fromMediaTypeOrFormat("application/json");
         if (xContentType == null) {
             throw new IllegalStateException("Unsupported Content-Type: " + contentType);
         }
-        String rst = entity.body().string();
-        String body = JSON.parseObject(rst).getJSONArray("responses").getJSONObject(0).toJSONString();
-        InputStream inputStream = new ByteArrayInputStream(body.getBytes());
-        try (XContentParser parser = xContentType.xContent().createParser(registry, inputStream)) {
+        try (XContentParser parser = xContentType.xContent().createParser(registry, httpEntity.getContent())) {
             return entityParser.apply(parser);
         }
     }
