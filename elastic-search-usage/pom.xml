@@ -21,7 +21,6 @@
         <module>elastic-search-query-api</module>
         <module>elastic-search-distribute-character</module>
         <module>elastic-search-query-sql</module>
-        <module>elastic-resolver-sql</module>
     </modules>
 
     <dependencyManagement>
