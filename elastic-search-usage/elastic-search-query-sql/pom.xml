@@ -113,16 +113,4 @@
             <url>https://repo.rdc.aliyun.com/repository/70364-snapshot-G0OIcY/</url>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>rdc-releases</id>
-            <url>https://repo.rdc.aliyun.com/repository/70364-release-cD5mDa/</url>
-        </repository>
-        <snapshotRepository>
-            <id>rdc-snapshots</id>
-            <url>https://repo.rdc.aliyun.com/repository/70364-snapshot-G0OIcY/</url>
-        </snapshotRepository>
-    </distributionManagement>
-
 </project>
