@@ -17,6 +17,7 @@
         <module>elastic-search-usage</module>
         <module>elastic-search-usage</module>
         <module>java-framework</module>
+        <module>hadoop</module>
     </modules>
 
     <dependencyManagement>
