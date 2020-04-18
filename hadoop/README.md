@@ -131,12 +131,12 @@ hdfs dfs -mkdir /user
 
 hdfs dfs -mkdir /user/daiyongjun
 ```
-![image](50B3BB423B954CF09F9FB7D733D2CD66)
+![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/50B3BB423B954CF09F9FB7D733D2CD66)
 复制操作系统下的文件到hdfs目录下
 ```
 hdfs dfs -put /operate/input input
 ```
-![image](881687A827544A5CAB1457EB7C69E647)
+![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/881687A827544A5CAB1457EB7C69E647)
 
 
 
@@ -145,7 +145,7 @@ hdfs dfs -put /operate/input input
 hadoop jar /opt/hadoop-2.5.0-cdh5.3.6/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.5.0-cdh5.3.6.jar grep input output 'dfs[a-z.]+'
 ```
 
-![image](2250D4A5B5F5467EA6F754F73926C62D)
+![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/2250D4A5B5F5467EA6F754F73926C62D)
 
 查看hdfs文件内容
 1、将hdfs的文件移动到操作系统的文件系统中
@@ -184,7 +184,7 @@ start-yarn.sh
 浏览器查看ResourceManager的管理界面
  http://localhost:8088/
  
- ![image](F847E43CD9E042EEA85682FF50CE744E)
+ ![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/F847E43CD9E042EEA85682FF50CE744E)
  
  关闭防火墙
  ```
