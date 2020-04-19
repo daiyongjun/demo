@@ -179,7 +179,7 @@ hdfs-site.xml描述【DataNode相关配置】
 
 参数|属性值|描述
 ---|---|---
-dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
+dfs.datanode.data.dir|file:///${hadoop.tmp.dir}/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
 dfs.replication|3|数据冗余处理,文件副本数
 
 hdfs相关shell命令
