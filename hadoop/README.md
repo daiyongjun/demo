@@ -131,12 +131,12 @@ hdfs dfs -mkdir /user
 
 hdfs dfs -mkdir /user/daiyongjun
 ```
-![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/50B3BB423B954CF09F9FB7D733D2CD66)
+![image](50B3BB423B954CF09F9FB7D733D2CD66)
 复制操作系统下的文件到hdfs目录下
 ```
 hdfs dfs -put /operate/input input
 ```
-![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/881687A827544A5CAB1457EB7C69E647)
+![image](881687A827544A5CAB1457EB7C69E647)
 
 
 
@@ -145,7 +145,7 @@ hdfs dfs -put /operate/input input
 hadoop jar /opt/hadoop-2.5.0-cdh5.3.6/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.5.0-cdh5.3.6.jar grep input output 'dfs[a-z.]+'
 ```
 
-![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/2250D4A5B5F5467EA6F754F73926C62D)
+![image](2250D4A5B5F5467EA6F754F73926C62D)
 
 查看hdfs文件内容
 1、将hdfs的文件移动到操作系统的文件系统中
@@ -184,7 +184,7 @@ start-yarn.sh
 浏览器查看ResourceManager的管理界面
  http://localhost:8088/
  
- ![image](https://note.youdao.com/yws/public/resource/c4a9b3e8af70521246ead3990a0436e9/F847E43CD9E042EEA85682FF50CE744E)
+ ![image](F847E43CD9E042EEA85682FF50CE744E)
  
  关闭防火墙
  ```
@@ -193,3 +193,66 @@ sudo systemctl disable firewalld ，然后reboot 永久关闭
 sudo systemctl status  firewalld 查看防火墙状态。
  ```
  
+ 
+ 
+ 
+ 
+ 
+Configuring the Hadoop Daemons in Non-Secure Mode 
+非安全模式下的配置,来源于官网
+hdfs-site.xml 描述【NameNode相关配置】
+
+参数   |  属性值  |  描述
+---  |  ---  |  ---
+dfs.namenode.name.dir   |   file:///${hadoop.tmp.dir}/namenode,file:///${hadoop.tmp.dir}/duplicate/namenode  |  命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余
+dfs.namenode.hosts / dfs.namenode.hosts.exclude   |   slave1,slave2,slave3,slave4  |  允许datanode节点列表,逗号支持分隔多个节点 
+dfs.blocksize	   |   268435456  |  大型文件系统的HDFS块大小为256MB
+dfs.namenode.handler.count	   |   100  |  设置更多的namenode线程，处理从 datanode发出的大量RPC请求
+
+
+hdfs-site.xml 描述【DataNode相关配置】
+
+参数  | 属性值 | 描述
+--- | --- | ---
+dfs.namenode.name.dir  |  file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode | 数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
+dfs.replication  |  3 | 数据冗余处理,文件副本数
+
+
+```
+<configuration>
+	<property>
+		<name>dfs.namenode.name.dir</name>
+		<value>file:///${hadoop.tmp.dir}/namenode,file:///${hadoop.tmp.dir}/duplicate/namenode</value>
+		<description>命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余</description>
+	</property>
+	<property>
+		<name>dfs.namenode.hosts</name>
+		<value>slave1,slave2,slave3,slave4</value>
+		<description>允许datanode节点列表,逗号支持分隔多个节点</description>
+	</property>
+	<property>
+		<name>dfs.blocksize</name>
+		<value>268435456</value>
+		<description>设置大型文件系统的HDFS的blocksize为256MB</description>
+	</property>
+	<property>
+		<name>dfs.namenode.handler.count</name>
+		<value>100</value>
+		<description>设置更多的namenode线程，处理从 datanode发出的大量RPC请求</description>
+	</property>
+	<property>
+		<name>dfs.datanode.data.dir</name>
+		<value>file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode</value>
+		<description>数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上</description>
+	</property>
+	<property>
+		<name>dfs.replication</name>
+		<value>3</value>
+		<description>数据冗余处理,文件副本数</description>
+	</property>
+</configuration>
+```
+
+
+
+
