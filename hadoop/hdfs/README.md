@@ -166,29 +166,23 @@ vi /etc/hadoop/hdfs-site.xml
 Configuring the Hadoop Daemons in Non-Secure Mode 
 非安全模式下的配置,来源于官网
 hdfs-site.xml 描述【NameNode相关配置】
-参数   |  属性值  |  描述
----  |  ---  |  ---
-dfs.namenode.name.dir   |   file:///${hadoop.tmp.dir}/namenode,file:///${hadoop.tmp.dir}/duplicate/namenode  |  命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余
-dfs.namenode.hosts / dfs.namenode.hosts.exclude   |   slave1,slave2,slave3,slave4  |  允许datanode节点列表,逗号支持分隔多个节点 
-dfs.blocksize	   |   268435456  |  大型文件系统的HDFS块大小为256MB
-dfs.namenode.handler.count	   |   100  |  设置更多的namenode线程，处理从 datanode发出的大量RPC请求
+
+参数|属性值|描述
+---|---|---
+dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/namenode,file:///${hadoop.tmp.dir}/duplicate/namenode|命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余
+dfs.namenode.hosts/dfs.namenode.hosts.exclude|slave1,slave2,slave3,slave4|允许datanode节点列表,逗号支持分隔多个节点
+dfs.blocksize	|268435456|大型文件系统的HDFS块大小为256MB
+dfs.namenode.handler.count	|100|设置更多的namenode线程，处理从datanode发出的大量RPC请求
 
 
-hdfs-site.xml 描述【DataNode相关配置】
-参数  | 属性值 | 描述
---- | --- | ---
-dfs.namenode.name.dir  |  file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode | 数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
-dfs.replication  |  3 | 数据冗余处理,文件副本数
-
-hdfs-site.xml 描述【DataNode相关配置】
-参数  | 属性值 | 描述
---- | --- | ---
-dfs.namenode.name.dir  |  file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode | 数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
-dfs.replication  |  3 | 数据冗余处理,文件副本数
+hdfs-site.xml描述【DataNode相关配置】
+参数|属性值|描述
+---|---|---
+dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
+dfs.replication|3|数据冗余处理,文件副本数
 
 
-
-参数  | 属性值 | 描述
---- | --- | ---
-hdfs dfs -appendToFile <localsrc> ... <dst>  |  file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode | 数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
-hdfs dfs -cat URI [URI ...]  | hdfs dfs -cat /usr/daiyongjun  | 将源路径复制到标准输出，实际就是将源文件进行输出
+参数|属性值|描述
+---|---|---
+hdfsdfs-appendToFile<localsrc>...<dst>|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
+hdfsdfs-catURI[URI...]|hdfsdfs-cat/usr/daiyongjun|将源路径复制到标准输出，实际就是将源文件进行输出
