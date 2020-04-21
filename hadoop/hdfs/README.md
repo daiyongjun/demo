@@ -6,6 +6,15 @@
 
 >[cnblogs:Hadoop学习(二)Hadoop配置文件参数详解](https://www.cnblogs.com/yinghun/p/6230436.html "cnblogs:Hadoop学习(二)Hadoop配置文件参数详解")
 
+#### 英语生词
+
+- fencing 美[ˈfensɪŋ]
+n.	击剑运动; 栅栏; 篱笆; 围栏; 筑栅栏用的材料;
+v.	(用栅栏、篱笆或围栏) 围住，隔开; 参加击剑运动; 搪塞; 支吾; 回避;
+- quorum 美[ˈkwɔːrəm]
+n.	(会议的) 法定人数;
+
+
 
 #### 如何启动
 [下载hadoop2.5.0版本](http://archive.apache.org/dist/hadoop/common/hadoop-2.5.0/ "下载hadoop2.5.0版本")
@@ -371,7 +380,7 @@ hdfs namenode -format
 start-dfs.sh
 ```
 
-#### hdfs 启动命令
+#### HDFS 启动命令
 
 **hdfs namenode -format**
 ```
@@ -391,6 +400,7 @@ hadoop-daemon.sh --script hdfs start namenode
 hadoop-daemon.sh --script hdfs start datanode
 ```
 
+
 **stop-dfs.sh相关**
 ```
 #详解命令
@@ -400,7 +410,131 @@ hadoop-daemon.sh --script hdfs start datanode
 ```
 
 
-#### Hdfs Configuring 
+#### HDFS HA架构
+
+##### 背景
+
+在Hadoop 2.0.0之前，NameNode是HDFS集群中的单点故障（SPOF）。每个群集只有一个NameNode，并且如果该计算机或进程不可用，则整个群集将不可用，直到NameNode重新启动或在单独的计算机上启动。
+
+##### 架构设计
+HA群集中，将两个单独的计算机配置为NameNod，在任何时间点，一个NameNode都恰好处于活动状态，而另一个则处于Standby状态。
+为了使备用节点保持其状态与活动节点同步，**当前的实现要求两个节点都可以访问共享存储设备上的目录，或者维护一个单独进程JournalNodes**
+当活动节点执行任何名称空间修改时，它会持久地将修改记录记录到存储在**共享目录中**的编辑日志文件中或者**JournalNodes(JN)中**。Standby节点一直在监视此目录中的编辑或者编辑日志的更改，并同步。
+为了提供快速的故障转移，备用节点还必须具有有关集群中块位置的最新信息。为了实现这一点，DataNodes被配置了两个NameNodes的位置，并向两者发送块位置信息和心跳信号。
+##### 硬件需求
+- "活动"和"备用" NameNode的计算机应具有彼此等效的硬件。
+- 您将需要有一个共享目录，两台NameNode机器都可以对其进行读/写访问或者维护 JournalNodes(JN)的单独守护程序进行通信,注意：必须至少有3个JournalNode守护程序，因为必须将编辑日志修改写入大多数JN中，详细可以参考zookeeper的选举机制，这里就不展开说明。
+
+##### 部署配置
+###### 概述
+设计新配置后，群集中的所有节点都可以具有相同的配置，而无需根据节点的类型将不同的配置文件部署到不同的机器上
+###### 配置细节
+
+* hdfs-site.xml 描述
+
+参数|属性值|描述
+---|---|---
+dfs.nameservices|mycluster|dfs-nameservices名称服务定义一个逻辑名称
+dfs.ha.namenodes.mycluster|mycluster|dfs-nameservices名称服务定义一个逻辑名称
+dfs.nameservices|nn1,nn2|dfs-nameservices名称服务定义一个逻辑名称
+dfs.nameservices|mycluster|dfs-nameservices名称服务定义一个逻辑名称
+###### 部署细节
+
+
+##### 配置HA架构模式
+
+```
+#login master
+cd /opt/software/hadoop-2.5.0-cdh5.3.6
+vi /etc/hadoop/hdfs-site.xml
+
+#add
+<configuration>
+	<property>
+		<name>dfs.nameservices</name>
+		<value>mycluster</value>
+		<description>dfs-nameservices名称服务定义一个逻辑名称</description>
+	</property>
+	<property>
+		<name>dfs.ha.namenodes.mycluster</name>
+		<value>nn1,nn2</value>
+		<description>最多只能配置两个NameNode,名称服务定义namenodes定义逻辑名称,例如，如果您以前使用"mycluster"作为名称服务ID，并且想要使用"nn1"和"nn2"作为NameNode的各个ID,则可以这样配置</description>
+	</property>
+	<property>
+		<name>dfs.namenode.rpc-address.ns1.nn1</name>
+		<value>master:8020</value>
+		<description>ns1.nn1的逻辑名称NameNode监听的标准RPC地址</description>
+	</property>
+	<property>
+		<name>dfs.namenode.rpc-address.ns1.nn2</name>
+		<value>slave1:8020</value>
+		<description>ns1.nn2的逻辑名称NameNode监听的标准RPC地址</description>
+	</property>
+	<property>
+		<name>dfs.namenode.rpc-address.ns1.nn1</name>
+		<value>master:50070</value>
+		<description>ns1.nn1的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
+	</property>
+	<property>
+		<name>dfs.namenode.rpc-address.ns1.nn2</name>
+		<value>slave1:50070</value>
+		<description>>ns1.nn2的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
+	</property>
+	<property>
+		<name>dfs.namenode.rpc-address.ns1.nn2</name>
+		<value>slave1:50070</value>
+		<description>>ns1.nn2的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
+	</property>
+	<property>
+		<name>dfs.namenode.shared.edits.dir</name>
+		<value>qjournal://master:8485;slave1:8485;slave2:8485;slave3:8485;slave4:8485/ns1</value>
+		<description>JournalNodes(JN)的单独守护程序，建议运行奇数个且运行数>=3</description>
+	</property>
+	<property>
+		<name>dfs.client.failover.proxy.provider.mycluster</name>
+		<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+		<description>配置Java类的名称，DFS客户端将使用该Java类来确定哪个NameNode是当前的Active，从而确定哪个NameNode当前正在服务于客户端请求</description>
+	</property>
+	<property>
+		<name>dfs.ha.fencing.methods</name>
+		<value>sshfence</value>
+		<description>故障转移期间隔离策略提供,ssh访问目标主机策略,同时也支持自定义shell策略模式</description>
+	</property>
+	<property>
+		<name>dfs.ha.fencing.ssh.private-key-files</name>
+		<value>/daiyongjun/.ssh/id_rsa</value>
+		<description>sshkey</description>
+	</property>
+</configuration>
+
+vi core-site.xml
+#updata
+<configuration>
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://mycluster</value>
+		<description>使用新的启用HA的逻辑URI</description>
+	</property>
+	<property>
+		<name>dfs.journalnode.edits.dir</name>
+		<value>file:///${hadoop.tmp.dir}/path/to/journal/node/local/data</value>
+		<description>JournalNode守护程序将存储其本地状态的路径</description>
+	</property>
+</configuration>
+
+#scp file
+scp -r /opt/software/hadoop-2.5.0-cdh5.3.6/etc/hadoop daiyongjun@slave1:/opt/software/hadoop-2.5.0-cdh5.3.6/etc/
+scp -r /opt/software/hadoop-2.5.0-cdh5.3.6/etc/hadoop daiyongjun@slave2:/opt/software/hadoop-2.5.0-cdh5.3.6/etc/
+scp -r /opt/software/hadoop-2.5.0-cdh5.3.6/etc/hadoop daiyongjun@slave3:/opt/software/hadoop-2.5.0-cdh5.3.6/etc/
+scp -r /opt/software/hadoop-2.5.0-cdh5.3.6/etc/hadoop daiyongjun@slave4:/opt/software/hadoop-2.5.0-cdh5.3.6/etc/
+
+
+
+```
+
+
+
+#### HDFS Configuring 【非安全模式】
 * hdfs-site.xml 描述【NameNode相关配置】
 
 参数|属性值|描述
@@ -419,10 +553,11 @@ dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.di
 dfs.replication|3|数据冗余处理,文件副本数
 
 
-#### hdfs操作
+#### HDFS操作
 
 参数|属性值|描述
 ---|---|---
 hdfsdfs-appendToFile<localsrc>...<dst>|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
 hdfsdfs-catURI[URI...]|hdfsdfs-cat/usr/daiyongjun|将源路径复制到标准输出，实际就是将源文件进行输出
+
 
