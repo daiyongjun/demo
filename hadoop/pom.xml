@@ -13,6 +13,8 @@
         <module>hdfs</module>
     </modules>
     <artifactId>hadoop</artifactId>
-
+    <properties>
+        <hadoop.version>2.5.0</hadoop.version>
+    </properties>
 
 </project>
