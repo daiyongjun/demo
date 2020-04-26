@@ -13,11 +13,48 @@ n.	击剑运动; 栅栏; 篱笆; 围栏; 筑栅栏用的材料;
 v.	(用栅栏、篱笆或围栏) 围住，隔开; 参加击剑运动; 搪塞; 支吾; 回避;
 - quorum 美[ˈkwɔːrəm]
 n.	(会议的) 法定人数;
+- federation 美[ˌfedəˈreɪʃn]
+n.	联邦; (俱乐部、工会等的) 联合会; 同盟; 联盟;
 
 
 
 #### 如何启动
 [下载hadoop2.5.0版本](http://archive.apache.org/dist/hadoop/common/hadoop-2.5.0/ "下载hadoop2.5.0版本")
+
+#### HDFS架构
+
+##### 背景
+HDFS的是Hadoop Distributed File System的简称，是基于google的GFS论文演变而成。
+
+##### 介绍
+Hadoop分布式文件系统（HDFS）是一种旨在在商品硬件上运行的分布式文件系统。它与现有的分布式文件系统有许多相似之处。但是，与其他分布式文件系统的区别很明显。HDFS具有**高度的容错能力**，旨在**部署在低成本硬件**上。HDFS提供对应用程序数据的**高吞吐量访问**，并且适用于**具有大数据集的应用程序**。HDFS放宽了一些POSIX要求，以实现对**文件系统数据的流式访问**。HDFS最初是作为Apache Nutch Web搜索引擎项目的基础结构而构建的。HDFS是Apache Hadoop Core项目的一部分。项目URL是
+[https://hadoop.apache.org](https://hadoop.apache.org)。
+
+##### 架构
+- **Namespace和BlockStorage**
+    ![image](20D180463B904F8AA8640FA7CF29F14F)
+    - 名称空间【Namespace】
+         - 目录，文件和块与数据的映射关系
+         - 支持所有与名称空间相关的文件系统操作，例如创建，删除，修改和列出文件和目录
+    
+    - 块存储服务【BlockStorage】
+        - 块管理(在Namenode中完成)
+            - 通过处理注册和定期心跳来提供数据节点群集成员身份。
+            - 处理块报告并维护块的位置。
+            - 支持与块相关的操作，例如创建，删除，修改和获取块位置。
+            - 管理复制下的块的副本放置和块的复制，并删除过度复制的块。
+        - 存储-由数据节点通过在本地文件系统上存储块来提供，并允许读/写访问。
+- **NameNode和DataNodes**
+    hdfs通过主从架构，客户端只和主节点交互，交互命令再由主节点传达到各个从节点。hdfs通过namenode进程和datanodes等进程来实现命名空间【Namespace】和块存储服务【BlockStorage】的架构和功能。在内部，文件被分成一个或多个块，这些块存储在一组DataNode中，NameNode执行文件系统名称空间操作，以及存储文件块datanode之间的映射。最后HDFS是使用Java语言构建的,支持java的可移植性。
+    ![image](1AFF5CC5858C427B8B07AC5D50FB0D05)
+- **文件系统命名空间**
+HDFS支持传统文件系统的分层结构，或者称为树型结构，用户或应用程序可以创建目录并将文件存储在这些目录中。目前版本暂不支持硬链接和软链接，用户权限和用户访问限制。Namenode维护文件系统的命名空间【文件目录和块到数据的映射关系，和删除新增等操作】
+
+
+
+
+注意：先前的HDFS体系结构仅允许整个集群使用单个名称空间。单个Namenode管理此名称空间，后续的HA架构我们会提及。
+
 
 
 ##### 配置本地模式
@@ -417,6 +454,8 @@ hadoop-daemon.sh --script hdfs start datanode
 在Hadoop 2.0.0之前，NameNode是HDFS集群中的单点故障（SPOF）。每个群集只有一个NameNode，并且如果该计算机或进程不可用，则整个群集将不可用，直到NameNode重新启动或在单独的计算机上启动。
 
 ##### 架构设计
+![image](9AFE2B9B93794E2190B63C0F29E78088)
+
 HA群集中，将两个单独的计算机配置为NameNod，在任何时间点，一个NameNode都恰好处于活动状态，而另一个则处于Standby状态。
 为了使备用节点保持其状态与活动节点同步，**当前的实现要求两个节点都可以访问共享存储设备上的目录，或者维护一个单独进程JournalNodes**
 当活动节点执行任何名称空间修改时，它会持久地将修改记录记录到存储在**共享目录中**的编辑日志文件中或者**JournalNodes(JN)中**。Standby节点一直在监视此目录中的编辑或者编辑日志的更改，并同步。
@@ -498,7 +537,7 @@ vi /etc/hadoop/hdfs-site.xml
 	<property>
 		<name>dfs.ha.fencing.methods</name>
 		<value>sshfence</value>
-		<description>故障转移期间隔离策略提供,ssh访问目标主机策略,同时也支持自定义shell策略模式</description>
+		<description>故障转移期间隔离策略提供,ssh访问目标主机策略,同时也支持自定义shell策略模式,sshfence的模式需要两台namende之间需要互相无密码登录</description>
 	</property>
 	<property>
 		<name>dfs.ha.fencing.ssh.private-key-files</name>
@@ -517,8 +556,8 @@ vi core-site.xml
 	</property>
 	<property>
 		<name>dfs.journalnode.edits.dir</name>
-		<value>file:///${hadoop.tmp.dir}/path/to/journal/node/local/data</value>
-		<description>JournalNode守护程序将存储其本地状态的路径</description>
+		<value>${hadoop.tmp.dir}/path/to/journal/node/local/data</value>
+		<description>JournalNode守护程序将存储其本地状态的路径,必须是相对路径</description>
 	</property>
 </configuration>
 
