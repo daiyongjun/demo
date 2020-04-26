@@ -32,7 +32,7 @@ Hadoop分布式文件系统（HDFS）是一种旨在在商品硬件上运行的�
 
 ##### 架构
 - **Namespace和BlockStorage**
-    ![image](20D180463B904F8AA8640FA7CF29F14F)
+    ![image](http://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/20D180463B904F8AA8640FA7CF29F14F)
     - 名称空间【Namespace】
          - 目录，文件和块与数据的映射关系
          - 支持所有与名称空间相关的文件系统操作，例如创建，删除，修改和列出文件和目录
@@ -46,7 +46,7 @@ Hadoop分布式文件系统（HDFS）是一种旨在在商品硬件上运行的�
         - 存储-由数据节点通过在本地文件系统上存储块来提供，并允许读/写访问。
 - **NameNode和DataNodes**
     hdfs通过主从架构，客户端只和主节点交互，交互命令再由主节点传达到各个从节点。hdfs通过namenode进程和datanodes等进程来实现命名空间【Namespace】和块存储服务【BlockStorage】的架构和功能。在内部，文件被分成一个或多个块，这些块存储在一组DataNode中，NameNode执行文件系统名称空间操作，以及存储文件块datanode之间的映射。最后HDFS是使用Java语言构建的,支持java的可移植性。
-    ![image](1AFF5CC5858C427B8B07AC5D50FB0D05)
+    ![image](http://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/1AFF5CC5858C427B8B07AC5D50FB0D05)
 - **文件系统命名空间**
 HDFS支持传统文件系统的分层结构，或者称为树型结构，用户或应用程序可以创建目录并将文件存储在这些目录中。目前版本暂不支持硬链接和软链接，用户权限和用户访问限制。Namenode维护文件系统的命名空间【文件目录和块到数据的映射关系，和删除新增等操作】
 
@@ -454,7 +454,7 @@ hadoop-daemon.sh --script hdfs start datanode
 在Hadoop 2.0.0之前，NameNode是HDFS集群中的单点故障（SPOF）。每个群集只有一个NameNode，并且如果该计算机或进程不可用，则整个群集将不可用，直到NameNode重新启动或在单独的计算机上启动。
 
 ##### 架构设计
-![image](9AFE2B9B93794E2190B63C0F29E78088)
+![image](http://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/9AFE2B9B93794E2190B63C0F29E78088)
 
 HA群集中，将两个单独的计算机配置为NameNod，在任何时间点，一个NameNode都恰好处于活动状态，而另一个则处于Standby状态。
 为了使备用节点保持其状态与活动节点同步，**当前的实现要求两个节点都可以访问共享存储设备上的目录，或者维护一个单独进程JournalNodes**
