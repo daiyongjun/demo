@@ -32,7 +32,7 @@ Hadoop分布式文件系统（HDFS）是一种旨在在商品硬件上运行的�
 
 ##### 架构
 - **Namespace和BlockStorage**
-    ![image](http://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/20D180463B904F8AA8640FA7CF29F14F)
+    ![image](https://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/20D180463B904F8AA8640FA7CF29F14F)
     - 名称空间【Namespace】
          - 目录，文件和块与数据的映射关系
          - 支持所有与名称空间相关的文件系统操作，例如创建，删除，修改和列出文件和目录
@@ -46,11 +46,11 @@ Hadoop分布式文件系统（HDFS）是一种旨在在商品硬件上运行的�
         - 存储-由数据节点通过在本地文件系统上存储块来提供，并允许读/写访问。
 - **NameNode和DataNodes**
     hdfs通过主从架构，客户端只和主节点交互，交互命令再由主节点传达到各个从节点。hdfs通过namenode进程和datanodes等进程来实现命名空间【Namespace】和块存储服务【BlockStorage】的架构和功能。在内部，文件被分成一个或多个块，这些块存储在一组DataNode中，NameNode执行文件系统名称空间操作，以及存储文件块datanode之间的映射。最后HDFS是使用Java语言构建的,支持java的可移植性。
-    ![image](http://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/1AFF5CC5858C427B8B07AC5D50FB0D05)
+    ![image](https://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/1AFF5CC5858C427B8B07AC5D50FB0D05)
 - **文件系统命名空间**
 HDFS支持传统文件系统的分层结构，或者称为树型结构，用户或应用程序可以创建目录并将文件存储在这些目录中。目前版本暂不支持硬链接和软链接，用户权限和用户访问限制。Namenode维护文件系统的命名空间【文件目录和块到数据的映射关系，和删除新增等操作】
 
-
+-**
 
 
 注意：先前的HDFS体系结构仅允许整个集群使用单个名称空间。单个Namenode管理此名称空间，后续的HA架构我们会提及。
@@ -162,7 +162,7 @@ vi /etc/hadoop/core-site.xml
 	<property>
 		<name>hadoop.tmp.dir</name>
 		<value>/opt/software/hadoop-2.5.0-cdh5.3.6/custom/</value>
-		<description>构建全局的路径</description>
+		<description>hadoop守护程序日志输出将写入$ HADOOP_LOG_DIR目录(默认为$ HADOOP_HOME/logs)详细参考;core-site-default.xml</description>
 	</property>
 	<property>
 		<name>fs.default.name</name>
@@ -454,7 +454,7 @@ hadoop-daemon.sh --script hdfs start datanode
 在Hadoop 2.0.0之前，NameNode是HDFS集群中的单点故障（SPOF）。每个群集只有一个NameNode，并且如果该计算机或进程不可用，则整个群集将不可用，直到NameNode重新启动或在单独的计算机上启动。
 
 ##### 架构设计
-![image](http://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/9AFE2B9B93794E2190B63C0F29E78088)
+![image](https://note.youdao.com/yws/public/resource/aa5257f99c3b2ab90ac3ebec621bffa2/9AFE2B9B93794E2190B63C0F29E78088)
 
 HA群集中，将两个单独的计算机配置为NameNod，在任何时间点，一个NameNode都恰好处于活动状态，而另一个则处于Standby状态。
 为了使备用节点保持其状态与活动节点同步，**当前的实现要求两个节点都可以访问共享存储设备上的目录，或者维护一个单独进程JournalNodes**
@@ -487,8 +487,38 @@ dfs.nameservices|mycluster|dfs-nameservices名称服务定义一个逻辑名称
 cd /opt/software/hadoop-2.5.0-cdh5.3.6
 vi /etc/hadoop/hdfs-site.xml
 
-#add
+#替换
 <configuration>
+	<property>
+		<name>dfs.namenode.name.dir</name>
+		<value>file:///${hadoop.tmp.dir}/namenode,file:///${hadoop.tmp.dir}/duplicate/namenode</value>
+		<description>命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余</description>
+	</property>
+	<property>
+		<name>dfs.namenode.hosts</name>
+		<value>slave2,slave3,slave4</value>
+		<description>允许datanode节点列表,逗号支持分隔多个节点</description>
+	</property>
+	<property>
+		<name>dfs.blocksize</name>
+		<value>268435456</value>
+		<description>设置大型文件系统的HDFS的blocksize为256MB</description>
+	</property>
+	<property>
+		<name>dfs.namenode.handler.count</name>
+		<value>100</value>
+		<description>设置更多的namenode线程，处理从 datanode发出的大量RPC请求</description>
+	</property>
+	<property>
+		<name>dfs.datanode.data.dir</name>
+		<value>file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode</value>
+		<description>数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上</description>
+	</property>
+	<property>
+		<name>dfs.replication</name>
+		<value>2</value>
+		<description>数据冗余处理,文件副本数</description>
+	</property>
 	<property>
 		<name>dfs.nameservices</name>
 		<value>mycluster</value>
@@ -500,33 +530,28 @@ vi /etc/hadoop/hdfs-site.xml
 		<description>最多只能配置两个NameNode,名称服务定义namenodes定义逻辑名称,例如，如果您以前使用"mycluster"作为名称服务ID，并且想要使用"nn1"和"nn2"作为NameNode的各个ID,则可以这样配置</description>
 	</property>
 	<property>
-		<name>dfs.namenode.rpc-address.ns1.nn1</name>
+		<name>dfs.namenode.rpc-address.mycluster.nn1</name>
 		<value>master:8020</value>
-		<description>ns1.nn1的逻辑名称NameNode监听的标准RPC地址</description>
+		<description>mycluster.nn1的逻辑名称NameNode监听的标准RPC地址</description>
 	</property>
 	<property>
-		<name>dfs.namenode.rpc-address.ns1.nn2</name>
+		<name>dfs.namenode.rpc-address.mycluster.nn2</name>
 		<value>slave1:8020</value>
-		<description>ns1.nn2的逻辑名称NameNode监听的标准RPC地址</description>
+		<description>mycluster.nn2的逻辑名称NameNode监听的标准RPC地址</description>
 	</property>
 	<property>
-		<name>dfs.namenode.rpc-address.ns1.nn1</name>
+		<name>dfs.namenode.http-address.mycluster.nn1</name>
 		<value>master:50070</value>
-		<description>ns1.nn1的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
+		<description>mycluster.nn1的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
 	</property>
 	<property>
-		<name>dfs.namenode.rpc-address.ns1.nn2</name>
+		<name>dfs.namenode.http-address.mycluster.nn2</name>
 		<value>slave1:50070</value>
-		<description>>ns1.nn2的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
-	</property>
-	<property>
-		<name>dfs.namenode.rpc-address.ns1.nn2</name>
-		<value>slave1:50070</value>
-		<description>>ns1.nn2的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
+		<description>>mycluster.nn2的逻辑名称对应的namenode的http访问地址,注意：如果启用了Hadoop的安全性功能，则还应该为每个NameNode相似地设置https-地址</description>
 	</property>
 	<property>
 		<name>dfs.namenode.shared.edits.dir</name>
-		<value>qjournal://master:8485;slave1:8485;slave2:8485;slave3:8485;slave4:8485/ns1</value>
+		<value>qjournal://master:8485;slave1:8485;slave2:8485;slave3:8485;slave4:8485/mycluster</value>
 		<description>JournalNodes(JN)的单独守护程序，建议运行奇数个且运行数>=3</description>
 	</property>
 	<property>
@@ -537,7 +562,7 @@ vi /etc/hadoop/hdfs-site.xml
 	<property>
 		<name>dfs.ha.fencing.methods</name>
 		<value>sshfence</value>
-		<description>故障转移期间隔离策略提供,ssh访问目标主机策略,同时也支持自定义shell策略模式,sshfence的模式需要两台namende之间需要互相无密码登录</description>
+		<description>故障转移期间隔离策略提供,ssh访问目标主机策略,同时也支持自定义shell策略模式</description>
 	</property>
 	<property>
 		<name>dfs.ha.fencing.ssh.private-key-files</name>
@@ -547,17 +572,28 @@ vi /etc/hadoop/hdfs-site.xml
 </configuration>
 
 vi core-site.xml
-#updata
+
+#替换
 <configuration>
+	<property>
+		<name>hadoop.tmp.dir</name>
+		<value>/opt/software/hadoop-2.5.0-cdh5.3.6/custom/</value>
+		<description>构建全局的路径</description>
+	</property>
 	<property>
 		<name>fs.defaultFS</name>
 		<value>hdfs://mycluster</value>
 		<description>使用新的启用HA的逻辑URI</description>
 	</property>
 	<property>
+		<name>io.file.buffer.size</name>
+		<value>131072</value>
+		<description>SequenceFiles中使用的读/写缓冲区的大小</description>
+	</property>
+	<property>
 		<name>dfs.journalnode.edits.dir</name>
 		<value>${hadoop.tmp.dir}/path/to/journal/node/local/data</value>
-		<description>JournalNode守护程序将存储其本地状态的路径,必须是相对路径</description>
+		<description>JournalNode守护程序将存储其本地状态的路径</description>
 	</property>
 </configuration>
 
@@ -578,7 +614,7 @@ scp -r /opt/software/hadoop-2.5.0-cdh5.3.6/etc/hadoop daiyongjun@slave4:/opt/sof
 
 参数|属性值|描述
 ---|---|---
-dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/namenode|命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余
+dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/namenode,file:///${hadoop.tmp.dir}/duplicate/namenode|命名空间和事务在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余
 dfs.namenode.hosts / dfs.namenode.hosts.exclude|slave1,slave2,slave3,slave4|允许datanode节点列表,逗号支持分隔多个节点 
 dfs.blocksize|268435456|大型文件系统的HDFS块大小为256MB
 dfs.namenode.handler.count|100|设置更多的namenode线程，处理从 datanode发出的大量RPC请求
@@ -588,7 +624,7 @@ dfs.namenode.handler.count|100|设置更多的namenode线程，处理从 datanod
 
 参数|属性值|描述
 ---|---|---
-dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
+dfs.namenode.name.dir|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
 dfs.replication|3|数据冗余处理,文件副本数
 
 
@@ -596,7 +632,7 @@ dfs.replication|3|数据冗余处理,文件副本数
 
 参数|属性值|描述
 ---|---|---
-hdfsdfs-appendToFile<localsrc>...<dst>|file:///${hadoop.tmp.dir}/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
+hdfsdfs-appendToFile<localsrc>...<dst>|file:///${hadoop.tmp.dir}/datanode,file:///${hadoop.tmp.dir}/duplicate/datanode|数据在本地文件系统永久存储的路径,逗号支持分隔多个本地路径，将命名空间和事务复制到多个目录实现冗余，通常在不同的设备上
 hdfsdfs-catURI[URI...]|hdfsdfs-cat/usr/daiyongjun|将源路径复制到标准输出，实际就是将源文件进行输出
 
 
