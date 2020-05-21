@@ -104,7 +104,35 @@ select news_posttime,news_title from app where news_title = '疫情' and news_po
   ]
 }
 ```
+
+**case when... else ... end**
+```
+select news_posttime as 时间,case when news_negative < 0.45 then '正' when news_negative < 0.75 then '中' else '负' end as 情感类型 from oversea
+```
+
+```
+{
+  "headers": [
+    "时间",
+    "情感类型"
+  ],
+  "lines": [
+    "2020-03-10 14:10:09\t负",
+    "2020-03-10 14:09:59\t负",
+    "2020-03-10 14:09:56\t中",
+    "2020-03-10 14:09:51\t负",
+    "2020-03-10 14:09:48\t负",
+    "2020-03-10 14:09:40\t负",
+    "2020-03-10 14:09:03\t正",
+    "2020-03-10 14:09:02\t负",
+    "2020-03-10 14:09:00\t正",
+    "2020-03-10 14:09:00\t负"
+  ]
+}
+```
+
 **全量查询,条件查询,自定义方法,使用方法按ES权威指南的描述**
+
 
 **term**
 ```
