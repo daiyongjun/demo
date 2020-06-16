@@ -463,7 +463,7 @@ select count(*) as '文章数' from app,web  group by date_range(field='news_pos
 }
 ```
 
-**按时间并对情感属性【由于七牛库中只有情感数值没有情感枚举类型如：负面，中性，正面】**
+**按时间分组,对情感值分组【由于七牛库中只有情感数值没有情感枚举类型如：负面，中性，正面】**
 ```
 select count(*) as 数量 from app1_retention,web2_retention,weibo1_retention,weixin1_retention where news_content='肺炎' and news_posttime >'2020-06-01 00:00:00' group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='时间'),range(news_negative,0,0.45,0.75,1)
 ```
