@@ -15,6 +15,7 @@
         <module>map-reduce</module>
         <module>yarn</module>
         <module>hive</module>
+        <module>kafka</module>
     </modules>
     <artifactId>hadoop</artifactId>
     <properties>
