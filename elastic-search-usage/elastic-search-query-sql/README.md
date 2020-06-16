@@ -545,7 +545,7 @@ select news_posttime as 时间,news_title as 标题,collection_from as 抓取来
 2020/6/16 8:30	我怀孕坐月子，婆婆如此待我，如今该是我好好“报答”她的时候了	xinhuawang	中
 ```
 
-**多条语句,自定义列名,更多数据(如果它有的话)**
+**单条语句,自定义列名,更多数据(如果它有的话)**
 ```
 select news_posttime as 时间,news_title as 标题 from app1_retention,web2_retention LIMIT 1001
 ```
