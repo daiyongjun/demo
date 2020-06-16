@@ -1,4 +1,4 @@
-# es-sql-query-common
+# elastic-search-query-sql
 #### 查询
 **全量查询**
 ```
@@ -104,35 +104,7 @@ select news_posttime,news_title from app where news_title = '疫情' and news_po
   ]
 }
 ```
-
-**case when... else ... end**
-```
-select news_posttime as 时间,case when news_negative < 0.45 then '正' when news_negative < 0.75 then '中' else '负' end as 情感类型 from oversea
-```
-
-```
-{
-  "headers": [
-    "时间",
-    "情感类型"
-  ],
-  "lines": [
-    "2020-03-10 14:10:09\t负",
-    "2020-03-10 14:09:59\t负",
-    "2020-03-10 14:09:56\t中",
-    "2020-03-10 14:09:51\t负",
-    "2020-03-10 14:09:48\t负",
-    "2020-03-10 14:09:40\t负",
-    "2020-03-10 14:09:03\t正",
-    "2020-03-10 14:09:02\t负",
-    "2020-03-10 14:09:00\t正",
-    "2020-03-10 14:09:00\t负"
-  ]
-}
-```
-
 **全量查询,条件查询,自定义方法,使用方法按ES权威指南的描述**
-
 
 **term**
 ```
@@ -160,6 +132,7 @@ select news_media,news_posttime,news_title from web2_retention,app1_retention wh
   ]
 }
 ```
+
 
 #### 聚合
 **获取索引中总量**
@@ -488,4 +461,105 @@ select count(*) as '文章数' from app,web  group by date_range(field='news_pos
     "2020-03-10-2020-03-07\t0.0"
   ]
 }
+```
+
+**按时间并对情感属性【由于七牛库中只有情感数值没有情感枚举类型如：负面，中性，正面】**
+```
+select count(*) as 数量 from app1_retention,web2_retention,weibo1_retention,weixin1_retention where news_content='肺炎' and news_posttime >'2020-06-01 00:00:00' group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='时间'),range(news_negative,0,0.45,0.75,1)
+```
+
+
+```
+{
+  "headers": [
+    "时间",
+    "range(news_negative,0,0.45,0.75,1)",
+    "数量"
+  ],
+  "lines": [
+    "2020-06-01\t0.0-0.45\t72365.0",
+    "2020-06-01\t0.45-0.75\t217091.0",
+    "2020-06-01\t0.75-1.0\t28177.0",
+    "2020-06-02\t0.0-0.45\t59508.0",
+    "2020-06-02\t0.45-0.75\t220473.0",
+    "2020-06-02\t0.75-1.0\t41648.0",
+    ......
+  ],
+  "scrollId": "",
+  "total": 4584390
+}
+```
+
+
+#### 下载
+**单条语句,自定义列名,默认条数**
+```
+select news_posttime as 时间,news_title as 标题,collection_from as 抓取来源,case when news_negative < 0.45 then '正' when news_negative < 0.75 then '中' else '负' end as 情感类型 from app1_retention
+```
+
+```
+时间	标题	抓取来源	情感类型
+2020/6/16 1:08	精选几道美味下饭的家常菜，香味十足，简单易做，营养又解馋	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:07	这个是什么剧来着	mirror_refine_m.hupu.com/bbs/[ID].html	中
+2020/6/16 1:08	来摆摊吧！派林大药房发布地摊支持计划！	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:08	想跟FM105明星主播一起自驾旅行？快来pick你最期待的，谁能C位出道？就看你的了！	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:08	教您正宗鱼香肉丝的做法，酸甜可口，简单易做，老婆每天吵着要吃	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:09	婚姻中，女人的这5个行为会引起男人的反感，让感情陷入危机！	monitor_account_qktoutiao_key	中
+2020/6/16 1:06	和平年代！最为可爱的一群人！谢谢你们，默默为人民负重前行！	monitor_account_baijia_key	正
+2020/6/16 0:27	长子娶回个傻儿媳，爸爸气得饭桌上喝闷酒，没想到儿媳的傻是装的	monitor_account_k.sina_key	中
+2020/6/16 1:07	八竿子打不着的杨丞琳和李荣浩，是怎么成为被柠檬的恩爱夫妻的？	monitor_account_wangyi_key	正
+2020/6/16 0:43	女朋友男人有时候很可怜，多关爱一下他们吧	monitor_account_qq_key	中
+```
+
+**多条语句,自定义列名,默认条数,可以支持更多**
+```
+select news_posttime as 时间,news_title as 标题,collection_from as 抓取来源,case when news_negative < 0.45 then '正' when news_negative < 0.75 then '中' else '负' end as 情感类型 from app1_retention,web2_retention UNION select news_posttime as 时间,news_title as 标题,collection_from as 抓取来源,case when news_negative < 0.45 then '正' when news_negative < 0.75 then '中' else '负' end as 情感类型 from weixin1_retention
+```
+**UNION A**
+```
+时间	标题	抓取来源	情感类型
+2020/6/16 1:08	精选几道美味下饭的家常菜，香味十足，简单易做，营养又解馋	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:07	这个是什么剧来着	mirror_refine_m.hupu.com/bbs/[ID].html	中
+2020/6/16 1:08	来摆摊吧！派林大药房发布地摊支持计划！	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:08	想跟FM105明星主播一起自驾旅行？快来pick你最期待的，谁能C位出道？就看你的了！	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:08	教您正宗鱼香肉丝的做法，酸甜可口，简单易做，老婆每天吵着要吃	mirror_refine_3g.k.sohu.com/t/n[ID]	中
+2020/6/16 1:09	婚姻中，女人的这5个行为会引起男人的反感，让感情陷入危机！	monitor_account_qktoutiao_key	中
+2020/6/16 1:06	和平年代！最为可爱的一群人！谢谢你们，默默为人民负重前行！	monitor_account_baijia_key	正
+2020/6/16 0:27	长子娶回个傻儿媳，爸爸气得饭桌上喝闷酒，没想到儿媳的傻是装的	monitor_account_k.sina_key	中
+2020/6/16 1:07	八竿子打不着的杨丞琳和李荣浩，是怎么成为被柠檬的恩爱夫妻的？	monitor_account_wangyi_key	正
+2020/6/16 0:43	女朋友男人有时候很可怜，多关爱一下他们吧	monitor_account_qq_key	中
+```
+
+**UNION B**
+```
+时间	标题	抓取来源	情感类型
+2020/6/16 8:00	一杯解决各种老胃病，简单有效！	xinhuawang	中
+2020/6/16 8:28	美加新闻播报丨中美航班翻倍，美联航、达美获批！佛洛伊德6岁孤女当迪士尼股东！美国三大州新增确诊病例创新高丨北京时间6月16日	xinhuawang	中
+2020/6/16 8:30	【预警】美国CPSC拟豁免部分纤维测试	xinhuawang	中
+2020/6/16 7:00	风吹麦浪 新粒归仓	gsdata	中
+2020/6/16 8:30	二货给客服美女打电话，套路深笑懵姐了！	xinhuawang	中
+2020/6/16 8:30	紧急提醒！	xinhuawang	中
+2020/6/16 8:12	达摩108手中医正骨手法——第一节颈椎五把推	xinhuawang	中
+2020/6/16 8:30	急寻密接者！四川确诊1例病例，活动轨迹公布！	xinhuawang	中
+2020/6/16 8:30	城市地下管廊及给排水设计	xinhuawang	中
+2020/6/16 8:30	我怀孕坐月子，婆婆如此待我，如今该是我好好“报答”她的时候了	xinhuawang	中
+```
+
+**多条语句,自定义列名,更多数据(如果它有的话)**
+```
+select news_posttime as 时间,news_title as 标题 from app1_retention,web2_retention LIMIT 1001
+```
+
+```
+时间	标题
+2020/6/16 1:08	精选几道美味下饭的家常菜，香味十足，简单易做，营养又解馋
+2020/6/16 1:07	这个是什么剧来着
+2020/6/16 1:08	来摆摊吧！派林大药房发布地摊支持计划！
+2020/6/16 1:08	想跟FM105明星主播一起自驾旅行？快来pick你最期待的，谁能C位出道？就看你的了！
+2020/6/16 1:08	教您正宗鱼香肉丝的做法，酸甜可口，简单易做，老婆每天吵着要吃
+2020/6/16 1:09	婚姻中，女人的这5个行为会引起男人的反感，让感情陷入危机！
+2020/6/16 1:06	和平年代！最为可爱的一群人！谢谢你们，默默为人民负重前行！
+2020/6/16 0:27	长子娶回个傻儿媳，爸爸气得饭桌上喝闷酒，没想到儿媳的傻是装的
+2020/6/16 1:07	八竿子打不着的杨丞琳和李荣浩，是怎么成为被柠檬的恩爱夫妻的？
+......
 ```
