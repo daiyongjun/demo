@@ -21,7 +21,6 @@ select news_posttime,news_title from app limit 1
     "2020-03-04 09:06:13\t美国新冠肺炎感染总数达117人 新增3例死亡病例"
   ]
 }
-
 ```
 
 **全量查询,条件查询**
@@ -50,6 +49,35 @@ select news_posttime,news_title from app where news_title = '疫情' and news_po
   ]
 }
 ```
+
+**全量查询,限定条数,设置排除条**
+```
+select news_posttime,news_title from app1_retention where news_title = '疫情' and not (news_title = '安徽' and news_title = '合肥') limit 10
+```
+
+```
+{
+  "headers": [
+    "news_posttime",
+    "news_title"
+  ],
+  "lines": [
+    "2020-07-03 00:02:00\t罗湖疫情联防联控中闪耀着港籍志愿者的身影，他们服务独居高龄长者、官方信息“搬运工”……",
+    "2020-07-03 00:11:23\t创新河北｜河北应对疫情多措并举 科技创新亮点纷呈",
+    "2020-07-03 00:06:39\t李兰娟院士来重庆坐诊谈疫情：建议加大对冷链载体、物流货物等检验力度",
+    "2020-07-03 00:23:55\t2020年，我们都磨练的见怪不怪了。维密宣布破产，Zara宣布关闭1000多家门店，星巴克减少400家+门店。除了这些耳熟能详的企业，国内每天都有成千上万的企业面临着破产。\\n\\n疫情之下，大多数人的生活大打折扣，还有不少人背上了巨额债务。\\n\\n这个世界上只有变化才是永恒不变的真理。\\n\\n昨天还一起学习飞机",
+    "2020-07-03 00:28:00\t吉林省卫生健康委员会关于新型冠状病毒肺炎疫情情况通报（2020年7月2日公布）",
+    "2020-07-03 00:32:53\t【夺取疫情防控和经济社会发展双胜利】保基层运转 添发展动力",
+    "2020-07-03 00:29:43\t创新河北｜河北应对疫情多措并举 科技创新亮点纷呈",
+    "2020-07-03 00:08:37\t高考即至，暑期工作怎么找？这个平台，方便快捷，看看呗。\\n   7月全国高考在即，再现千军万马过独木桥的场景。神兽即将出笼，老师将进入闭关修练。莘莘学子，十年寒窗，终于拔云见日了！\\n    普大喜奔的同时，你的孩子暑假期间如何度过？在当前疫情未退，跨省旅游暂未开放之际，这个暑期，令全国的家长心焦不己。",
+    "2020-07-03 00:12:18\t罗湖疫情联防联控中闪耀着港籍志愿者的身影，他们服务独居高龄长者、官方信息“搬运工”……",
+    "2020-07-03 00:12:00\t线上讲座 | 留英数年，见证数次历史！剑桥博士学长专业解读：疫情下的英国留学和就业现状"
+  ],
+  "scrollId": "",
+  "total": 9438
+}
+```
+
 
 **全量查询,条件查询,混合条件**
 ```
@@ -463,7 +491,7 @@ select count(*) as '文章数' from app,web  group by date_range(field='news_pos
 }
 ```
 
-**按时间分组,对情感值分组【由于七牛库中只有情感数值没有情感枚举类型如：负面，中性，正面】**
+**按时间并对情感属性【由于七牛库中只有情感数值没有情感枚举类型如：负面，中性，正面】**
 ```
 select count(*) as 数量 from app1_retention,web2_retention,weibo1_retention,weixin1_retention where news_content='肺炎' and news_posttime >'2020-06-01 00:00:00' group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='时间'),range(news_negative,0,0.45,0.75,1)
 ```
@@ -545,7 +573,7 @@ select news_posttime as 时间,news_title as 标题,collection_from as 抓取来
 2020/6/16 8:30	我怀孕坐月子，婆婆如此待我，如今该是我好好“报答”她的时候了	xinhuawang	中
 ```
 
-**单条语句,自定义列名,更多数据(如果它有的话)**
+**多条语句,自定义列名,更多数据(如果它有的话)**
 ```
 select news_posttime as 时间,news_title as 标题 from app1_retention,web2_retention LIMIT 1001
 ```
@@ -562,4 +590,38 @@ select news_posttime as 时间,news_title as 标题 from app1_retention,web2_ret
 2020/6/16 0:27	长子娶回个傻儿媳，爸爸气得饭桌上喝闷酒，没想到儿媳的傻是装的
 2020/6/16 1:07	八竿子打不着的杨丞琳和李荣浩，是怎么成为被柠檬的恩爱夫妻的？
 ......
+```
+
+#### 替换现有业务   
+**通用文章下载-统计总数【参考任务号：26949】**
+```
+select count(*) from app1_retention where news_posttime > '2020-06-17 00:00:30' and news_posttime < '2020-06-22 09:20:30' and (news_title = '巍巍天山' OR news_digest = '巍巍天山' OR news_content = '巍巍天山') and (news_title = '中国新疆反恐记忆' OR news_digest = '中国新疆反恐记忆' OR news_content = '中国新疆反恐记忆')
+```
+**总数据量**
+```
+3806
+```
+
+**通用文章下载-使用下载总数进行下载**
+```
+select news_media as 来源媒体,app_name as 媒体名称,news_channel as 频道,news_title as 标题,news_digest as 摘要,news_positive as 情感属性,news_posttime as 发文时间,news_url as 链接,content_city as 文章提及城市,content_province as 文章提及省,news_read_count as 阅读数,news_comment_count as 评论数,news_is_origin 是否原创,media_type as 媒体类型,origin_author_name as 原创作者,origin_news_url as 原文链接,news_uuid,sim_hash,news_keywords_list as 主题词,news_province as 地域,news_city as 发布热区,author_gender as 性别,news_negative as 情感分值,app_code from app1_retention where news_posttime > '2020-06-17 00:00:30' and news_posttime < '2020-06-22 09:20:30' and (news_title = '巍巍天山' OR news_digest = '巍巍天山' OR news_content = '巍巍天山') and (news_title = '中国新疆反恐记忆' OR news_digest = '中国新疆反恐记忆' OR news_content = '中国新疆反恐记忆') LIMIT 3806
+
+```
+
+**全网提及量查询【参考：26348】**
+
+```
+select count(*) as 总数 from weibo1_retention,weibo1_retention,app1_retention,web2_retention,video where (news_title = '密云' OR news_content = '密云') and (news_title = '菜' OR news_content = '菜') and news_posttime > '2020-01-01 00:00:08' and news_posttime < '2020-03-13 00:00:08' group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='时间') union 
+select count(*) as 总数 from weibo1_retention,weibo1_retention,app1_retention,web2_retention,video where (news_title = '密云' OR news_content = '密云') and (news_title = '蔬菜' OR news_content = '蔬菜') and news_posttime > '2020-01-01 00:00:08' and news_posttime < '2020-03-13 00:00:08' group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='时间')
+```
+
+**微博账号查询【需要支持其他库】**
+
+
+
+**指定网站下载**
+```
+```
+
+```
 ```
