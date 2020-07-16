@@ -24,8 +24,6 @@ public class Consumer {
             Object message = kafkaMessage.get();
             System.out.println("---->" + record);
             System.out.println("---->" + message);
-
         }
-
     }
 }

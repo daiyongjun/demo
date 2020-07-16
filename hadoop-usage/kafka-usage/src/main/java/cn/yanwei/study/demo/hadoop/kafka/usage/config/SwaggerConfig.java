@@ -26,7 +26,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("cn.yanwei.study.demo.hadoop.kafka.usage.producer."))
+                .apis(RequestHandlerSelectors.basePackage("cn.yanwei.study.demo.hadoop.kafka.usage."))
                 .paths(PathSelectors.any())
                 .build();
     }

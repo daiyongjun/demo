@@ -18,11 +18,11 @@ import java.util.UUID;
  */
 @Component
 public class Producer {
-    private final KafkaTemplate<String,Object> kafkaTemplate;
+    private final KafkaTemplate kafkaTemplate;
     private static Gson gson = new GsonBuilder().create();
 
     @Autowired
-    public Producer(KafkaTemplate<String,Object> kafkaTemplate) {
+    public Producer(KafkaTemplate kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 

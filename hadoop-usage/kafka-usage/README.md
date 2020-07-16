@@ -30,97 +30,145 @@ Kafka对集群的支持也是非常友好的。在Kafka中，集群里的每个�
 ### 启动
 #### 单机模式
 ```
-cd /opt/package
+> cd /opt/package
 #下载
-wget  http://archive.apache.org/dist/kafka/1.0.0/kafka_2.11-1.0.0.tgz
+> wget  http://archive.apache.org/dist/kafka/1.0.0/kafka_2.11-1.0.0.tgz
 
-tar -zxvf kafka_2.11-1.0.0.tgz
-mv kafka_2.11-1.0.0 ../software/
+> tar -zxvf kafka_2.11-1.0.0.tgz -C /opt/software
 
 #set kafka environment
-sudo vi /etc/profile
+> sudo vi /etc/profile
 
 #kafka environment
-export KAFKA_HOME=/opt/software/kafka_2.11-1.0.0
+> export KAFKA_HOME=/opt/software/kafka_2.11-1.0.0
 PATH=${KAFKA_HOME}/bin:$PATH
 
-source /etc/profile
-#启动内置的zookeeper
-zookeeper-server-start.sh config/zookeeper.properties
-#启动Kafka服务器
-kafka-server-start.sh config/server.properties
+> source /etc/profile
+
+> cd /opt/software/kafka_2.11-1.0.0
+#启动内置的zookeeper(zookeeper的目录在/tmp路径下)
+> zookeeper-server-start.sh config/zookeeper.properties
+#(kafka默认存储路径/tmp)控制台启动，实时打印日志
+> kafka-server-start.sh config/server.properties
 ```
-#### 分布式模式
+#### 单机模式(操作)
 ```
-cd /opt/package
-#下载
-wget  http://archive.apache.org/dist/kafka/1.0.0/kafka_2.11-1.0.0.tgz
+#创建一个主题
+> kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+Created topic "test".
+#查看主题列表
+> kafka-topics.sh --list --zookeeper localhost:2181
+test
+#发送一些消息
+> kafka-console-producer.sh --broker-list localhost:9092 --topic test
+This is a message
+This is another message
+#启动一个消费者
+> kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+This is a message
+This is another message
+```
 
-tar -zxvf kafka_2.11-1.0.0.tgz
-mv kafka_2.11-1.0.0 ../software/
-
-#set kafka environment
-sudo vi /etc/profile
-
-#kafka environment
-export KAFKA_HOME=/opt/software/kafka_2.11-1.0.0
-PATH=${KAFKA_HOME}/bin:$PATH
-
-source /etc/profile
-
+#### 分布式模式【非官方文档的内容，使用自己构建的zookeeper服务】
+```
 #修改配置
-vi /usr/local/kafka/config/server.properties
-#按所在机器位置变化
-broker.id=1
+> vi /usr/local/kafka/config/server.properties
 
-listeners=PLAINTEXT://master:9092
-listeners=PLAINTEXT://slave1:9092
-listeners=PLAINTEXT://slave2:9092
-listeners=PLAINTEXT://slave3:9092
-listeners=PLAINTEXT://slave4:9092
 
-master:2181,slave1:2181,slave2:2181,slave3:2181,slave4:2181
+#按所在机器位置变化如：id=1,id=2,id=3
+> broker.id=1
+#根据机器的变化而变化如：listeners master,listeners slave1......
+> listeners=PLAINTEXT://master:9092
+> listeners=PLAINTEXT://slave1:9092
+> listeners=PLAINTEXT://slave2:9092
+> listeners=PLAINTEXT://slave3:9092
+> listeners=PLAINTEXT://slave4:9092
+
+> zookeeper.connect=master:2181,slave1:2181,slave2:2181,slave3:2181,slave4:2181
 
 #迁移kafka
-scp -r ./kafka_2.11-1.0.0 daiyongjun@master:/opt/software/
-scp -r ./kafka_2.11-1.0.0 daiyongjun@slave1:/opt/software/
-scp -r ./kafka_2.11-1.0.0 daiyongjun@slave2:/opt/software/
-scp -r ./kafka_2.11-1.0.0 daiyongjun@slave3:/opt/software/
-scp -r ./kafka_2.11-1.0.0 daiyongjun@slave4:/opt/software/
+> scp -r ./kafka_2.11-1.0.0 daiyongjun@master:/opt/software/
+> scp -r ./kafka_2.11-1.0.0 daiyongjun@slave1:/opt/software/
+> scp -r ./kafka_2.11-1.0.0 daiyongjun@slave2:/opt/software/
+> scp -r ./kafka_2.11-1.0.0 daiyongjun@slave3:/opt/software/
+> scp -r ./kafka_2.11-1.0.0 daiyongjun@slave4:/opt/software/
 
-#依次启动机器
+#后台启动(日志的位置kafka_2.11-1.0.0/logs/server.log)
 #master
-cd /opt/software/kafka_2.11-1.0.0/
-kafka-server-start.sh -daemon ./config/server.properties
+> cd /opt/software/kafka_2.11-1.0.0/
+> kafka-server-start.sh -daemon ./config/server.properties
 #slave1
-cd /opt/software/kafka_2.11-1.0.0/
-kafka-server-start.sh -daemon ./config/server.properties
+> cd /opt/software/kafka_2.11-1.0.0/
+> kafka-server-start.sh -daemon ./config/server.properties
 #slave2
-cd /opt/software/kafka_2.11-1.0.0/
-kafka-server-start.sh -daemon ./config/server.properties
+> cd /opt/software/kafka_2.11-1.0.0/
+> kafka-server-start.sh -daemon ./config/server.properties
 #slave3
-cd /opt/software/kafka_2.11-1.0.0/
-kafka-server-start.sh -daemon ./config/server.properties
+> cd /opt/software/kafka_2.11-1.0.0/
+> kafka-server-start.sh -daemon ./config/server.properties
 #slave4
-cd /opt/software/kafka_2.11-1.0.0/
-kafka-server-start.sh -daemon ./config/server.properties
+> cd /opt/software/kafka_2.11-1.0.0/
+> kafka-server-start.sh -daemon ./config/server.properties
 ```
+### 分布式模式(操作)
+```
+#创建一个主题
+> kafka-topics.sh --create --zookeeper master:2181 --replication-factor 2 --partitions 3 --topic ceshi
+Created topic "ceshi".
+#查看主题列表
+> kafka-topics.sh --list --zookeeper master:2181
+ceshi
+#发送一些消息
+> kafka-console-producer.sh --broker-list master:9092 --topic ceshi
+> This is a message
+> This is another message
+#启动一个消费者
+> kafka-console-consumer.sh --bootstrap-server master:9092 --topic ceshi --from-beginning
+> This is a message
+> This is another message
+```
+### 分布式模式(导入/导出数据)
+```
+> cd /opt/software/kafka_2.11-1.0.0/
+#创建一个文件
+> echo -e "foo\nbar" > test.txt
+#使用kafka connect导入和导出数据(可以尝试查看三个配置文件的内容)
+> connect-standalone.sh config/connect-standalone.properties config/connect-file-source.properties config/connect-file-sink.properties
+> kafka-console-consumer.sh --bootstrap-server master:9092 --topic connect-test --from-beginning
+
+{"schema":{"type":"string","optional":false},"payload":"foo"}
+{"schema":{"type":"string","optional":false},"payload":"bar"}
+...
+
+```
+
+
+
+
+
+
+
+
 ### kafka-manager
 为了简化开发者和服务工程师维护Kafka集群的工作，yahoo构建了一个叫做Kafka管理器的基于Web工具。
 ```
 #下载服务
 cd /opt/package
-wget https://github.com/yahoo/CMAK/archive/1.3.3.22.zip
-unzip CMAK-master.zip -d /opt/software/
+> wget https://github.com/yahoo/CMAK/archive/1.3.3.22.zip
+> unzip CMAK-master.zip -d /opt/software/
 
 
 #安装stb
-yum install sbt分
+> yum install sbt分
 
 #后台启动
 
-nohup bin/kafka-manager -Dconfig.file=conf/application.conf -Dhttp.port=8080 >/dev/null 2>&1 &
+> nohup bin/kafka-manager -Dconfig.file=conf/application.conf -Dhttp.port=8080  &
 ```
+
+[详细使用参考这篇文章](https://www.jianshu.com/p/6a592d558812/)
+
+
 
 
 ### 参考文献&学习资源
@@ -130,3 +178,5 @@ nohup bin/kafka-manager -Dconfig.file=conf/application.conf -Dhttp.port=8080 >/d
 >[简书 :Kafka简明教程 ](https://www.jianshu.com/p/7b77723d4f96 "Kafka简明教程")
 
 >[官网 :Kafka中文文档 ](http://kafka.apachecn.org/intro.html "Kafka中文文档")
+
+
