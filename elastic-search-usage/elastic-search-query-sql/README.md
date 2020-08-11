@@ -662,3 +662,74 @@ select case when news_media = 'weibo' then '微博' when news_media = 'wx' then 
 客户端	央视新闻	商务部等八部门联合部署推动家政服务消费加快回补	7月6日，商务部、发展改革委、民政部等八部门联合发布)指出，各地相关部门要加强横向协作、纵向联动，加快推进家政服务业信用体系建设，有序推动家政服务企业复工营业，保居民就业、保基本民生、保市场主体，推动家政服务消费加快回补。	中性	2020/7/7 10:04	https://jingji.cctv.com/2020/07/07/ARTIQItBiEZRDsb3NChLy3nE200707.shtml			0	0	1	门户媒体,main_news,shunya	时政		ef1eddac6535ac6c624d3ddf4a671e62	d5862ac5cd0169d5c9ae0bc1b24c575c	app_uuid:9969
 ......
 ```
+
+#### 新版本下载【支持目前所有ES库,同时支持动态扩展】
+**枚举类型**
+
+DataSouce(关键词) | (资源描述)描述
+---|---
+es | 老舆情_阿里云es
+dy | 中科大洋_阿里云es
+mg | 新舆情_阿里云es
+peace | 和平区_阿里云es
+account | 微博账号_阿里云es
+config | 配置中心_阿里云es
+oversea | 海外_阿里云es
+qiniu(不写) | 舆情_七牛云es
+
+**海外舆情相关统计**
+```
+select count(*) as 数据量 from oversea.oversea_web where (platform_domain_pri = 'reuters.com' or platform_domain_pri = 'sputniknews.com' or platform_domain_pri = 'scmp.com' or platform_domain_pri = 'ptinews.com' or platform_domain_pri = 'afp.com' or platform_domain_pri = 'straitstimes.com' or platform_domain_pri = 'nytimes.com' or platform_domain_pri = 'thetimes.co.uk' or platform_domain_pri = 'english.kyodonews.net' or platform_domain_pri = 'hindustantimes.com') and (news_title = 'China' or news_title = 'Anhui' or news_title = 'Beijing' or news_title = 'Chongqing' or news_title = 'Fujian' or news_title = 'Guangdong' or news_title = 'Gansu' or news_title = 'Guangxi' or news_title = 'Guizhou' or news_title = 'Henan' or news_title = 'Hubei' or news_title = 'Hebei' or news_title = 'Hainan' or news_title = 'Hong Kong' or news_title = 'Heilongjiang' or news_title = 'Hunan' or news_title = 'Jilin' or news_title = 'Jiangsu' or news_title = 'Jiangxi' or news_title = 'Liaoning' or news_title = 'Macau' or news_title = 'Inner Mongolia' or news_title = 'Ningxia' or news_title = 'Qinghai' or news_title = 'Sichuan' or news_title = 'Shandong' or news_title = 'Shanghai' or news_title = 'Shaanxi' or news_title = 'Shanxi' or news_title = 'Tianjin' or news_title = 'Taiwan' or news_title = 'Xinjiang' or news_title = 'Tibet' or news_title = 'Yunnan' or news_title = 'Zhejiang') and news_posttime > '2018-12-01 00:00:00' and news_posttime < '2020-07-25 00:00:00' group by platform_domain_pri
+```
+
+```
+platform_domain_pri  数据量
+reuters.com  21006
+straitstimes.com  1693
+scmp.com  1528
+hindustantimes.com  1422
+afp.com  716
+thetimes.co.uk  544
+sputniknews.com  515
+nytimes.com  497
+ptinews.com  129
+```
+
+**ES库中有包含按时间拆分的索引和没有按时间拆分的索引如：微博账号ES集群中weiboaccount_01和Qiniu集群中gateway_collect索引等**
+```
+#没有按时间拆分索引可以加后缀_ns，如：weiboaccount_01_ns
+select gender as 性别,udt as 时间 from account.weiboaccount_01_ns LIMIT 10
+```
+
+```
+性别    时间
+女  2019-12-16 23:10:25
+男  2019-12-16 23:10:25
+男  2019-12-16 23:10:25
+女  2019-12-16 23:10:25
+女  2019-12-16 23:10:25
+女  2019-12-16 23:10:25
+男  2019-12-16 23:10:25
+女  2019-12-16 23:10:25
+女  2019-12-16 23:10:25
+```
+#### 新版本下载【支持内查询如：select * from table where id in (select id from table)】
+
+**需要获取最热的TOP100的相关文章**
+```
+select * from web2_retention where sim_hash in (select sim_hash from web2_retention where (news_title = '新基建' OR news_content = '新基建') group by sim_hash LIMIT 100)
+```
+
+```
+标题	时间
+中北宏远集团开启四川5G建设新篇章 助力成都智慧物流发展	2020/8/11 9:30
+应勇王晓东与“知名民企湖北行”企业家代表座谈 时间：2020-08-11 09:12:44   来源：荆楚网    分享到：	2020/8/11 9:12
+劳动力市场活跃度回升（经济新方位）	2020/8/11 9:46
+上海上半年实到外资增长5.4% “魔都”有什么魔力？	2020/8/11 6:03
+黄海皮卡布局国六低价位区间市场，打造6万级国六皮卡性价比之王	2020/8/11 8:56
+人工智能为“天津智港”插上翅膀	2020/8/11 9:49
+湖南省新增17个年度重点建设项目 总投资680亿	2020/8/11 8:11
+劳动力市场活跃度回升（经济新方位）	2020/8/11 9:55
+【财经早报】美股涨跌不一 道指创半年新高	2020/8/11 9:34
+5G为新基建注入强动力落实“六稳”“六保”	2020/8/11 9:42
+```
