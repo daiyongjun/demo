@@ -2,14 +2,14 @@
 #### 查询
 **全量查询**
 ```
-select * from app
+select * from es.app
 ```
 ```
 数据比较多.....
 ```
 **全量查询,限定条数**
 ```
-select news_posttime,news_title from app limit 1
+select news_posttime,news_title from es.app limit 1
 ```
 ```
 {
@@ -26,7 +26,7 @@ select news_posttime,news_title from app limit 1
 **全量查询,条件查询**
 
 ```
-select news_posttime,news_title from app where news_title = '疫情' and news_posttime >= '2020-03-09 00:00:00'
+select news_posttime,news_title from es.app where news_title = '疫情' and news_posttime >= '2020-03-09 00:00:00'
 ```
 
 ```
@@ -81,7 +81,7 @@ select news_posttime,news_title from app1_retention where news_title = '疫情' 
 
 **全量查询,条件查询,混合条件**
 ```
-select news_posttime,news_title from app where (news_title = '疫情' OR news_content = '疫情') and news_posttime BETWEEN  '2020-03-07 00:00:00' AND '2020-03-08 00:00:00'
+select news_posttime,news_title from es.app where (news_title = '疫情' OR news_content = '疫情') and news_posttime BETWEEN  '2020-03-07 00:00:00' AND '2020-03-08 00:00:00'
 ```
 
 ```
@@ -108,7 +108,7 @@ select news_posttime,news_title from app where (news_title = '疫情' OR news_co
 
 **全量查询,条件查询,排序**
 ```
-select news_posttime,news_title from app where news_title = '疫情' and news_posttime >= '2020-03-09 00:00:00' order by news_posttime desc
+select news_posttime,news_title from es.app where news_title = '疫情' and news_posttime >= '2020-03-09 00:00:00' order by news_posttime desc
 ```
 
 
@@ -165,7 +165,7 @@ select news_media,news_posttime,news_title from web2_retention,app1_retention wh
 #### 聚合
 **获取索引中总量**
 ```
-select count(*) as 总量 from app 
+select count(*) as 总量 from es.app 
 ```
 
 ```
@@ -181,7 +181,7 @@ select count(*) as 总量 from app
 
 **指定字段求和**
 ```
-select sum(news_read_count) as 总阅量 from app 
+select sum(news_read_count) as 总阅量 from es.app 
 ```
 
 ```
@@ -198,7 +198,7 @@ select sum(news_read_count) as 总阅量 from app
 
 **指定字段最小值**
 ```
-select min(news_read_count) as 最低阅量 from app
+select min(news_read_count) as 最低阅量 from es.app
 ```
 
 ```
@@ -215,7 +215,7 @@ select min(news_read_count) as 最低阅量 from app
 
 **指定字段最大值**
 ```
-select max(news_read_count) as 最高阅量 from app
+select max(news_read_count) as 最高阅量 from es.app
 ```
 
 ```
@@ -231,7 +231,7 @@ select max(news_read_count) as 最高阅量 from app
 
 **指定字段平均值**
 ```
-select avg(news_read_count) as 平均阅量 from app 
+select avg(news_read_count) as 平均阅量 from es.app 
 ```
 
 ```
@@ -247,7 +247,7 @@ select avg(news_read_count) as 平均阅量 from app
 
 **指定字段各项统计**
 ```
-select stats(news_read_count) as 阅量 from app 
+select stats(news_read_count) as 阅量 from es.app 
 ```
 
 ```
@@ -267,7 +267,7 @@ select stats(news_read_count) as 阅量 from app
 
 **指定字段各项统计【扩展】**
 ```
-select extended_stats(news_read_count) as 阅量 from app 
+select extended_stats(news_read_count) as 阅量 from es.app 
 ```
 
 ```
@@ -291,7 +291,7 @@ select extended_stats(news_read_count) as 阅量 from app
 
 **指定字段百分数统计**
 ```
-select percentiles(news_read_count) as 阅量 from app
+select percentiles(news_read_count) as 阅量 from es.app
 ```
 
 ```
@@ -314,7 +314,7 @@ select percentiles(news_read_count) as 阅量 from app
 
 **分组计数**
 ```
-select count(*) as 数量 from app,web group by  platform
+select count(*) as 数量 from es.app,es.web group by  platform
 ```
 
 ```
@@ -332,7 +332,7 @@ select count(*) as 数量 from app,web group by  platform
 
 **多次分组计数**
 ```
-select count(*) as 数量 from app,web group by platform,news_emotion
+select count(*) as 数量 from es.app,es.web group by platform,news_emotion
 ```
 
 ```
@@ -355,7 +355,7 @@ select count(*) as 数量 from app,web group by platform,news_emotion
 
 **多次分组计数并排序**
 ```
-select count(*) as 数量 from app,web group by platform,news_emotion order by 数量 
+select count(*) as 数量 from es.app,es.web group by platform,news_emotion order by 数量 
 ```
 
 ```
@@ -378,7 +378,7 @@ select count(*) as 数量 from app,web group by platform,news_emotion order by �
 
 **多次分组计数并排序**
 ```
-select count(*) as 数量 from app,web group by platform,news_emotion order by 数量 LIMIT 1 
+select count(*) as 数量 from es.app,es.web group by platform,news_emotion order by 数量 LIMIT 1 
 ```
 
 ```
@@ -398,7 +398,7 @@ select count(*) as 数量 from app,web group by platform,news_emotion order by �
 
 **指定range进行分组**
 ```
-select count(*)  as 数量 from app,web group by range(news_read_count,20,25,30,35,40) 
+select count(*)  as 数量 from es.app,es.web group by range(news_read_count,20,25,30,35,40) 
 ```
 
 ```
@@ -418,7 +418,7 @@ select count(*)  as 数量 from app,web group by range(news_read_count,20,25,30,
 
 **指定时间进行分组**
 ```
-select count(*) as '文章数' from app,web group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5)
+select count(*) as '文章数' from es.app,es.web group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5)
 ```
 
 ```
@@ -445,7 +445,7 @@ select count(*) as '文章数' from app,web group by date_histogram(field='news_
 
 **固定时间间隔进行分组**
 ```
-select count(*) as '文章数' from app,web group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='自定义分组')
+select count(*) as '文章数' from es.app,es.web group by date_histogram(field='news_posttime','interval'='1d','format'='yyyy-MM-dd','min_doc_count'=5,'alias'='自定义分组')
 ```
 
 ```
@@ -472,7 +472,7 @@ select count(*) as '文章数' from app,web group by date_histogram(field='news_
 
 **指定时间间隔进行分组**
 ```
-select count(*) as '文章数' from app,web  group by date_range(field='news_posttime','format'='yyyy-MM-dd' ,'2020-03-01','2020-03-10','now-3d','now-2d','now-1d','now')
+select count(*) as '文章数' from es.app,es.web  group by date_range(field='news_posttime','format'='yyyy-MM-dd' ,'2020-03-01','2020-03-10','now-3d','now-2d','now-1d','now')
 ```
 
 ```
