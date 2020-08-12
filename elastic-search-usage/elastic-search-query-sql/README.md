@@ -314,13 +314,13 @@ select percentiles(news_read_count) as 阅量 from es.app
 
 **分组计数**
 ```
-select count(*) as 数量 from es.app,es.web group by  platform
+select count(*) as 数量 from es.app,es.web group by  news_media
 ```
 
 ```
 {
   "headers": [
-    "platform",
+    "news_media",
     "数量"
   ],
   "lines": [
@@ -332,13 +332,13 @@ select count(*) as 数量 from es.app,es.web group by  platform
 
 **多次分组计数**
 ```
-select count(*) as 数量 from es.app,es.web group by platform,news_emotion
+select count(*) as 数量 from es.app,es.web group by news_media,news_emotion
 ```
 
 ```
 {
   "headers": [
-    "platform",
+    "news_media",
     "news_emotion",
     "数量"
   ],
@@ -355,13 +355,13 @@ select count(*) as 数量 from es.app,es.web group by platform,news_emotion
 
 **多次分组计数并排序**
 ```
-select count(*) as 数量 from es.app,es.web group by platform,news_emotion order by 数量 
+select count(*) as 数量 from es.app,es.web group by news_media,news_emotion order by 数量 
 ```
 
 ```
 {
   "headers": [
-    "platform",
+    "news_media",
     "news_emotion",
     "数量"
   ],
@@ -378,13 +378,13 @@ select count(*) as 数量 from es.app,es.web group by platform,news_emotion orde
 
 **多次分组计数并排序**
 ```
-select count(*) as 数量 from es.app,es.web group by platform,news_emotion order by 数量 LIMIT 1 
+select count(*) as 数量 from es.app,es.web group by news_media,news_emotion order by 数量 LIMIT 1 
 ```
 
 ```
 {
   "headers": [
-    "platform",
+    "news_media",
     "news_emotion",
     "数量"
   ],
