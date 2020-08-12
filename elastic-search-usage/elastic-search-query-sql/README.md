@@ -695,7 +695,7 @@ nytimes.com  497
 ptinews.com  129
 ```
 
-**ES库中有包含按时间拆分的索引和没有按时间拆分的索引如：微博账号ES集群中weiboaccount_01和Qiniu集群中gateway_collect索引等**
+**ES库中有包含按时间拆分的索引和没有按时间拆分的索引如：微博账号ES集群中weiboaccount_01和Qiniu集群中gateway_collect索引【注意七牛索引无需加_ns】等**
 ```
 #没有按时间拆分索引可以加后缀_ns，如：weiboaccount_01_ns
 select gender as 性别,udt as 时间 from account.weiboaccount_01_ns LIMIT 10
@@ -717,7 +717,7 @@ select gender as 性别,udt as 时间 from account.weiboaccount_01_ns LIMIT 10
 
 **需要获取最热的TOP100的相关文章**
 ```
-select * from web2_retention where sim_hash in (select sim_hash from web2_retention where (news_title = '新基建' OR news_content = '新基建') group by sim_hash LIMIT 100)
+select new_title as 标题，news_posttime as 时间 from web2_retention where sim_hash in (select sim_hash from web2_retention where (news_title = '新基建' OR news_content = '新基建') group by sim_hash LIMIT 100)
 ```
 
 ```
