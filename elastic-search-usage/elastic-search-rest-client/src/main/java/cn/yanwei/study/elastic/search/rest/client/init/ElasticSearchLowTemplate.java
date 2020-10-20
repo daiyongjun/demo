@@ -43,7 +43,7 @@ public class ElasticSearchLowTemplate {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, credentials);
         RestClientBuilder restClientBuilder = RestClient.builder(setHttpHosts(configuration.getHost()));
-        restClientBuilder = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+        restClientBuilder = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider).setMaxConnTotal(10));
         //Set the default headers
 //        Header[] defaultHeaders = new Header[]{new BasicHeader("header", "value")};
 //        restClientBuilder.setDefaultHeaders(defaultHeaders);
