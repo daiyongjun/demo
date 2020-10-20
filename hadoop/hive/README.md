@@ -18,7 +18,6 @@ n.	调度程序，日程安排程序;
 ![image](src/main/resources/image/hive.png)
 
 
-
 #### 启动HIVE
 ```
 > cd /opt/package

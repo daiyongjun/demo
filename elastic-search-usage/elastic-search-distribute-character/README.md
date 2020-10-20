@@ -79,15 +79,15 @@ Es利用sharder将数据平均分到集群内的各个node，当集群内增加�
 ![一个索引的单集群索引](https://www.elastic.co/guide/cn/elasticsearch/guide/current/images/elas_0202.png "一个索引的单集群索引")
 
 ###### 为blogs分配3个主分片和一份副本
-```
-[PUT]http://127.0.0.1:9200/blogs
-{
-   "settings" : {
-      "number_of_shards" : 3,
-      "number_of_replicas" : 1
+   ```
+   [PUT]http://127.0.0.1:9200/blogs
+   {
+      "settings" : {
+         "number_of_shards" : 3,
+         "number_of_replicas" : 1
+      }
    }
-}
-```
+   ```
 
 ###### 通过命令查看集群的健康
 ```
@@ -177,18 +177,18 @@ http://127.0.0.1:9200/_cluster/health
 ```
 ###### Es一个节点只能有3个分片吗
 我们修改索引的副本数量，索引无法修改主分片的数量但可以修改副本的数量。我们增加副本数。
-```
-[PUT]
-http://127.0.0.1:9200/blogs/_settings
-{
-   "number_of_replicas" : 2
-}
-
-[Reponse]
-{
-    "acknowledged": true
-}
-```
+   ```
+   [PUT]
+   http://127.0.0.1:9200/blogs/_settings
+   {
+      "number_of_replicas" : 2
+   }
+   
+   [Reponse]
+   {
+       "acknowledged": true
+   }
+   ```
 ###### 通过命令查看集群的健康
 ```
 http://127.0.0.1:9200/_cluster/health
