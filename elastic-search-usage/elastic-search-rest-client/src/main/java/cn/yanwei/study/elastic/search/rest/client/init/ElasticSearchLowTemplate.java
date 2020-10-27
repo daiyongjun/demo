@@ -2,16 +2,20 @@ package cn.yanwei.study.elastic.search.rest.client.init;
 
 import cn.yanwei.study.elastic.search.rest.client.config.Configuration;
 import lombok.Data;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.nio.reactor.ConnectingIOReactor;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.*;
 
@@ -20,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 初始胡RestClient
+ * 初始化RestClient
  *
  * @author daiyongjun
  * @version 1.0
@@ -33,6 +37,8 @@ public class ElasticSearchLowTemplate {
      */
     private RestClient restClient;
 
+
+
     /**
      * ElasticSearchTemplate构造方法
      *
@@ -42,8 +48,43 @@ public class ElasticSearchLowTemplate {
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(configuration.getUsername(), configuration.getPassword());
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+
+
         RestClientBuilder restClientBuilder = RestClient.builder(setHttpHosts(configuration.getHost()));
-        restClientBuilder = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider).setMaxConnTotal(10));
+
+        //配置io线程
+        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+                .setIoThreadCount(4)
+                .setSoKeepAlive(true)
+                .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(50000)
+                .setSocketTimeout(50000)
+                .setConnectionRequestTimeout(300)
+                .build();
+
+
+        //设置连接池大小
+        ConnectingIOReactor ioReactor = null;
+        try {
+            ioReactor = new DefaultConnectingIOReactor(ioReactorConfig);
+        } catch (IOReactorException e) {
+            e.printStackTrace();
+        }
+        PoolingNHttpClientConnectionManager connManager = new PoolingNHttpClientConnectionManager(ioReactor);
+        //最大连接数设置1
+        connManager.setMaxTotal(4);
+        //per route最大连接数设置1
+        connManager.setDefaultMaxPerRoute(4);
+
+        restClientBuilder = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.
+                        setConnectionManager(connManager).
+                        setDefaultCredentialsProvider(credentialsProvider)
+                        .setDefaultRequestConfig(requestConfig)
+//                        .setMaxConnPerRoute(10)
+//                        .setMaxConnTotal(10)
+        );
         //Set the default headers
 //        Header[] defaultHeaders = new Header[]{new BasicHeader("header", "value")};
 //        restClientBuilder.setDefaultHeaders(defaultHeaders);
@@ -107,6 +148,7 @@ public class ElasticSearchLowTemplate {
                         e.printStackTrace();
                     }
                 }
+
                 @Override
                 public void onFailure(Exception exception) {
 
@@ -119,6 +161,7 @@ public class ElasticSearchLowTemplate {
                 indexResponse = restClient.performRequest(request);
                 rest = EntityUtils.toString(indexResponse.getEntity());
             } catch (Exception e) {
+                e.printStackTrace();
                 System.err.println("client重置处理:\t" + e.getMessage());
                 rest = "";
             }
