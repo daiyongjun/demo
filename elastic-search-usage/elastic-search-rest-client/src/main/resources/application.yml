@@ -1,4 +1,3 @@
-debug: false
-
-logging:
-  level: fatal
+#debug: false
+#logging:
+#  level: fatal
